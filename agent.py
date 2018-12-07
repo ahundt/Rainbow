@@ -4,10 +4,16 @@ import torch
 from torch import optim
 
 from model import DQN
+try:
+  from darts.cnn.model import DQNAS
+except ImportError:
+  print('Could not import github.com/ahundt/darts costar_plan branch. '
+        'The DQNAS architecture option will not work.')
+  DQNAS = None
 
 
 class Agent():
-  def __init__(self, args, env):
+  def __init__(self, args, env, architecture='DQNAS'):
     self.action_space = env.action_space()
     self.atoms = args.atoms
     self.Vmin = args.V_min
@@ -18,13 +24,18 @@ class Agent():
     self.n = args.multi_step
     self.discount = args.discount
 
-    self.online_net = DQN(args, self.action_space).to(device=args.device)
+    if architecture == 'DQN':
+      self.online_net = DQN(args, self.action_space).to(device=args.device)
+      self.target_net = DQN(args, self.action_space).to(device=args.device)
+    elif architecture == 'DQNAS':
+      self.online_net = DQNAS(args.history_length, self.action_space).to(device=args.device)
+      self.target_net = DQNAS(args.history_length, self.action_space).to(device=args.device)
+
     if args.model and os.path.isfile(args.model):
       # Always load tensors onto CPU by default, will shift to GPU if necessary
       self.online_net.load_state_dict(torch.load(args.model, map_location='cpu'))
     self.online_net.train()
 
-    self.target_net = DQN(args, self.action_space).to(device=args.device)
     self.update_target_net()
     self.target_net.train()
     for param in self.target_net.parameters():
