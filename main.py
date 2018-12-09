@@ -24,7 +24,7 @@ parser.add_argument('--V-min', type=float, default=-10, metavar='V', help='Minim
 parser.add_argument('--V-max', type=float, default=10, metavar='V', help='Maximum of value distribution support')
 parser.add_argument('--model', type=str, metavar='PARAMS', help='Pretrained model (state dict)')
 parser.add_argument('--architecture', type=str, default='DQN', metavar='a', help='Model Architecture, either DQN or DQNAS')
-parser.add_argument('--optimizer', type=str, default='DQN', metavar='a', help='Model Architecture, either DQN or DQNAS')
+parser.add_argument('--optimizer', type=str, default='Adam', metavar='a', help='Model Architecture, either Adam or Padam. Padam has a fixed non-configurable 0.1 lr.')
 parser.add_argument('--memory-capacity', type=int, default=int(1e6), metavar='CAPACITY', help='Experience replay memory capacity')
 parser.add_argument('--replay-frequency', type=int, default=4, metavar='k', help='Frequency of sampling from memory')
 parser.add_argument('--priority-exponent', type=float, default=0.5, metavar='ω', help='Prioritised experience replay exponent (originally denoted α)')
