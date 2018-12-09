@@ -47,7 +47,7 @@ class Agent():
     if optimizer == 'Adam':
       self.optimiser = optim.Adam(self.online_net.parameters(), lr=args.lr, eps=args.adam_eps)
     elif optimizer == 'Padam':
-      self.optimiser = model.cnn.Padam.Padam(self.online_net.parameters(), lr=0.1, eps=args.adam_eps)
+      self.optimiser = darts.cnn.Padam.Padam(self.online_net.parameters(), lr=0.1, eps=args.adam_eps)
     else:
       raise ValueError('Optimizer ' + str(optimizer) + ' not supported, try Adam or Padam.')
 
