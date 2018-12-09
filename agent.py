@@ -13,7 +13,10 @@ except ImportError:
 
 
 class Agent():
-  def __init__(self, args, env, architecture='DQNAS'):
+  def __init__(self, args, env, architecture='DQNAS', optimizer='Adam'):
+        """
+        optimizer: Adam or Padam. Note the lr parameter only applies to Adam optimizer.
+        """
     self.action_space = env.action_space()
     self.atoms = args.atoms
     self.Vmin = args.V_min
@@ -41,7 +44,12 @@ class Agent():
     for param in self.target_net.parameters():
       param.requires_grad = False
 
-    self.optimiser = optim.Adam(self.online_net.parameters(), lr=args.lr, eps=args.adam_eps)
+    if optimizer == 'Adam':
+      self.optimiser = optim.Adam(self.online_net.parameters(), lr=args.lr, eps=args.adam_eps)
+    elif optimizer == 'Padam':
+      self.optimiser = model.cnn.Padam.Padam(self.online_net.parameters(), lr=0.1, eps=args.adam_eps)
+    else:
+      raise ValueError('Optimizer ' + str(optimizer) + ' not supported, try Adam or Padam.')
 
   # Resets noisy weights in all linear layers (of online net only)
   def reset_noise(self):
