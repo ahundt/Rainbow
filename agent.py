@@ -13,11 +13,11 @@ except ImportError:
 
 
 class Agent():
-  def __init__(self, args, env, architecture='DQNAS', optimizer='Adam'):
+  def __init__(self, args, action_space, architecture='DQNAS', optimizer='Adam'):
     """
     optimizer: Adam or Padam. Note the lr parameter only applies to Adam optimizer.
     """
-    self.action_space = env.action_space()
+    self.action_space = action_space
     self.atoms = args.atoms
     self.Vmin = args.V_min
     self.Vmax = args.V_max
