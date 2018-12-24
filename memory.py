@@ -13,9 +13,9 @@ class SegmentTree():
     self.index = 0
     self.size = size
     self.full = False  # Used to track actual capacity
-    self.sum_tree = np.array([0] * (2 * size - 1), dtype=np.int32)  # Initialise fixed size tree with all (priority) zeros
+    self.sum_tree = np.array([0] * (2 * size - 1), dtype=np.float32)  # Initialise fixed size tree with all (priority) zeros
     self.data = np.array([None] * size)  # Wrap-around cyclic buffer
-    self.max = np.array([1], dtype=np.int32)  # Initial max value to return (1 = 1^ω)
+    self.max = np.array([1], dtype=np.float32)  # Initial max value to return (1 = 1^ω)
 
   # Propagates value up tree given a tree index
   def _propagate(self, index, value):
@@ -27,7 +27,7 @@ class SegmentTree():
 
   # Updates value given a tree index
   def update(self, index, value):
-    self.sum_tree[index] = np.array(value, dtype=np.int32)  # Set new value
+    self.sum_tree[index] = np.array(value, dtype=np.float32)  # Set new value
     self._propagate(index, value)  # Propagate value
     self.max = np.maximum(value, self.max)
 
