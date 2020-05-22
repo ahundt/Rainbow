@@ -4,7 +4,12 @@ import random
 import atari_py
 import cv2
 import torch
+import torchvision.transforms as T
+from PIL import Image
 
+import gym
+import gym_minigrid
+import numpy as np
 
 class Env():
   def __init__(self, args):
@@ -89,6 +94,82 @@ class Env():
 
   def render(self):
     cv2.imshow('screen', self.ale.getScreenRGB()[:, :, ::-1])
+    cv2.waitKey(1)
+
+  def close(self):
+    cv2.destroyAllWindows()
+
+class MinigridEnv():
+  def __init__(self, args):
+    self.env = gym.make("MiniGrid-Empty-8x8-v0").unwrapped
+
+    # TODO check size, think it's 80x80?
+    self.resize = T.Compose([T.ToPILImage(), T.Resize(84, interpolation=Image.CUBIC),
+        T.Grayscale(), T.ToTensor()])
+
+    self.actions = self.env.actions
+    self.device = args.device
+    self.window = args.history_length  # Number of frames to concatenate
+    self.state_buffer = deque([], maxlen=args.history_length)
+
+  def _get_obs_rgb(self, obs):
+    obs = self.env.get_obs_render(obs).transpose((2, 0, 1))
+    obs = np.ascontiguousarray(obs, dtype=np.float32) / 255
+    obs = torch.from_numpy(obs)
+    obs = self.resize(obs).to(self.device)
+    return obs
+
+  def _get_state(self):
+    state = self._get_obs_rgb(self.env.gen_obs()['image'])
+    return state
+
+  def _reset_buffer(self):
+    for _ in range(self.window):
+      self.state_buffer.append(torch.zeros(84, 84, device=self.device))
+
+  def reset(self):
+    self._reset_buffer()
+    obs = self._get_obs_rgb(self.env.reset()['image'])
+    self.state_buffer.append(obs[0])
+    return torch.stack(list(self.state_buffer), 0)
+
+  def step(self, action):
+    frame_buffer = torch.zeros(2, 84, 84, device=self.device)
+    reward, done = 0, False
+    for t in range(4):
+      # figure out actions
+      obs, curr_reward, done, _ = self.env.step(action)
+      obs = self._get_obs_rgb(obs['image'])
+
+      reward += curr_reward
+      if t == 2:
+        frame_buffer[0] = obs
+      elif t == 3:
+        frame_buffer[1] = obs
+
+      # if game over break
+      if done:
+        break
+
+    observation = frame_buffer.max(0)[0]
+    self.state_buffer.append(observation)
+
+    # Return state, reward, done
+    return torch.stack(list(self.state_buffer), 0), reward, done
+
+  # Uses loss of life as terminal signal
+  def train(self):
+    self.training = True
+
+  # Uses standard terminal signal
+  def eval(self):
+    self.training = False
+
+  def action_space(self):
+    return len(self.actions)
+
+  def render(self):
+    cv2.imshow('screen', self._get_state.numpy())
     cv2.waitKey(1)
 
   def close(self):
