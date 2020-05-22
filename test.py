@@ -6,12 +6,16 @@ from plotly.graph_objs import Scatter
 from plotly.graph_objs.scatter import Line
 import torch
 
-from env import Env
+from env import Env, MinigridEnv
 
 
 # Test DQN
 def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
-  env = Env(args)
+  if args.minigrid:
+    env = MinigridEnv(args)
+  else:
+    env = Env(args)
+
   env.eval()
   metrics['steps'].append(T)
   T_rewards, T_Qs = [], []

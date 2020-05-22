@@ -169,7 +169,8 @@ class MinigridEnv():
     return len(self.actions)
 
   def render(self):
-    cv2.imshow('screen', self._get_state.numpy())
+    state = self._get_state().numpy()[0]
+    cv2.imshow('screen', state)
     cv2.waitKey(1)
 
   def close(self):
