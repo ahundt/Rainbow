@@ -102,9 +102,10 @@ class Env():
 class MinigridEnv():
   def __init__(self, args):
     self.env = gym.make("MiniGrid-Empty-8x8-v0").unwrapped
+    self.img_size = 84
 
     # TODO check size, think it's 80x80?
-    self.resize = T.Compose([T.ToPILImage(), T.Resize(84, interpolation=Image.CUBIC),
+    self.resize = T.Compose([T.ToPILImage(), T.Resize(self.img_size, interpolation=Image.CUBIC),
         T.Grayscale(), T.ToTensor()])
 
     self.actions = self.env.actions
@@ -113,78 +114,33 @@ class MinigridEnv():
     self.state_buffer = deque([], maxlen=args.history_length)
 
   def _get_obs_rgb(self, obs):
-    obs = self.env.get_obs_render(obs).transpose((2, 0, 1))
+    obs = obs.transpose((2, 0, 1))
     obs = np.ascontiguousarray(obs, dtype=np.float32) / 255
     obs = torch.from_numpy(obs)
     obs = self.resize(obs).to(self.device)
     return obs
 
   def _get_state(self):
-    state = self._get_obs_rgb(self.env.gen_obs()['image'])
+    state = self._get_obs_rgb(self.env.render(mode=None))
     return state
 
   def _reset_buffer(self):
     for _ in range(self.window):
-      self.state_buffer.append(torch.zeros(84, 84, device=self.device))
+      self.state_buffer.append(torch.zeros(self.img_size, self.img_size, device=self.device))
 
   def reset(self):
     self._reset_buffer()
-    obs = self._get_obs_rgb(self.env.reset()['image'])
+    self.env.reset()
+    obs = self._get_state()
     self.state_buffer.append(obs[0])
     return torch.stack(list(self.state_buffer), 0)
 
   def step(self, action):
-    frame_buffer = torch.zeros(2, 84, 84, device=self.device)
-    reward, done = 0, False
-    #if action == self.actions.left:
-    #    print('left')
-    #    print(self.actions.left)
-    #elif action == self.actions.right:
-    #    print('right')
-    #    print(self.actions.right)
-    #    print(self.actions.right == action)
-    #elif action == self.actions.forward:
-    #    print('forward')
-    #    print(self.actions.forward)
-    #elif action == self.actions.pickup:
-    #    print('pickup')
-    #    print(self.actions.pickup)
-    #elif action == self.actions.drop:
-    #    print('drop')
-    #    print(self.actions.drop)
-    #elif action == self.actions.toggle:
-    #    print('toggle')
-    #    print(self.actions.toggle)
-    #elif action == self.actions.done:
-    #    print('done')
-    #    print(self.actions.done)
-    #else:
-    #    print("none of the actions")
-    #    print(self.actions.left)
-    #    print(self.actions.right)
-    #    print(self.actions.forward)
-    #    print(self.actions.pickup)
-    #    print(self.actions.drop)
-    #    print(self.actions.toggle)
-    #    print(self.actions.done)
+    # figure out actions
+    _, reward, done, _ = self.env.step(action)
+    obs = self._get_state()
 
-    for t in range(4):
-      # figure out actions
-      obs, curr_reward, done, _ = self.env.step(action)
-      obs = self._get_obs_rgb(obs['image'])
-
-      reward += curr_reward
-      if t == 2:
-        frame_buffer[0] = obs
-      elif t == 3:
-        frame_buffer[1] = obs
-
-      # if game over break
-      if done:
-        break
-
-    observation = frame_buffer.max(0)[0]
-    self.state_buffer.append(observation)
+    self.state_buffer.append(obs[0])
 
     # Return state, reward, done
     return torch.stack(list(self.state_buffer), 0), reward, done
