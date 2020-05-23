@@ -136,6 +136,38 @@ class MinigridEnv():
   def step(self, action):
     frame_buffer = torch.zeros(2, 84, 84, device=self.device)
     reward, done = 0, False
+    #if action == self.actions.left:
+    #    print('left')
+    #    print(self.actions.left)
+    #elif action == self.actions.right:
+    #    print('right')
+    #    print(self.actions.right)
+    #    print(self.actions.right == action)
+    #elif action == self.actions.forward:
+    #    print('forward')
+    #    print(self.actions.forward)
+    #elif action == self.actions.pickup:
+    #    print('pickup')
+    #    print(self.actions.pickup)
+    #elif action == self.actions.drop:
+    #    print('drop')
+    #    print(self.actions.drop)
+    #elif action == self.actions.toggle:
+    #    print('toggle')
+    #    print(self.actions.toggle)
+    #elif action == self.actions.done:
+    #    print('done')
+    #    print(self.actions.done)
+    #else:
+    #    print("none of the actions")
+    #    print(self.actions.left)
+    #    print(self.actions.right)
+    #    print(self.actions.forward)
+    #    print(self.actions.pickup)
+    #    print(self.actions.drop)
+    #    print(self.actions.toggle)
+    #    print(self.actions.done)
+
     for t in range(4):
       # figure out actions
       obs, curr_reward, done, _ = self.env.step(action)
