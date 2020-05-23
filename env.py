@@ -101,7 +101,7 @@ class Env():
 
 class MinigridEnv():
   def __init__(self, args):
-    self.env = gym.make("MiniGrid-Empty-8x8-v0").unwrapped
+    self.env = gym.make(args.env).unwrapped
     self.img_size = 84
 
     # TODO check size, think it's 80x80?
