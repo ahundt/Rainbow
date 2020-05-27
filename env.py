@@ -8,7 +8,7 @@ import torchvision.transforms as T
 from PIL import Image
 
 import gym
-import gym_minigrid
+from gym_minigrid.minigrid import Grid
 import numpy as np
 
 class Env():
@@ -104,11 +104,13 @@ class MinigridEnv():
     self.env = gym.make(args.env).unwrapped
     self.img_size = 84
 
-    # TODO check size, think it's 80x80?
     self.resize = T.Compose([T.ToPILImage(), T.Resize(self.img_size, interpolation=Image.CUBIC),
         T.Grayscale(), T.ToTensor()])
 
-    self.actions = self.env.actions
+    self.actions = len(self.env.actions) - 1 # don't allow done action
+    if args.spot_q:
+        # TODO would need to extend this if we want to support additional tasks (like door opening)
+        self.actions = 3 # just allow left, right, forward
     self.device = args.device
     self.window = args.history_length  # Number of frames to concatenate
     self.state_buffer = deque([], maxlen=args.history_length)
@@ -127,6 +129,18 @@ class MinigridEnv():
   def _reset_buffer(self):
     for _ in range(self.window):
       self.state_buffer.append(torch.zeros(self.img_size, self.img_size, device=self.device))
+
+  def check_forward_allowed(self):
+    grid = self.env.grid
+    next_pos = self.env.front_pos
+    
+    next_pos_obj = grid.get(next_pos[0], next_pos[1])
+    if next_pos_obj is not None:
+        # don't allow moving forward into lava or wall
+        if next_pos_obj.type == 'lava' or next_pos_obj.type == 'wall':
+            return False
+
+    return True
 
   def reset(self):
     self._reset_buffer()
@@ -154,7 +168,7 @@ class MinigridEnv():
     self.training = False
 
   def action_space(self):
-    return len(self.actions)
+    return self.actions
 
   def render(self):
     state = self._get_state().cpu().numpy()[0]

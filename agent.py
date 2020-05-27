@@ -48,17 +48,36 @@ class Agent():
     self.online_net.reset_noise()
 
   # Acts based on single state (no batch)
-  def act(self, state):
+  def act(self, state, forward=True): 
     with torch.no_grad():
-      return (self.online_net(state.unsqueeze(0)) * self.support).sum(2).argmax(1).item()
+      action_eval = torch.flatten((self.online_net(state.unsqueeze(0)) * self.support).sum(2))
+      actions = torch.argsort(action_eval, descending=True)[:2]
+
+      if forward:
+          return actions[0]
+
+      # if we can't move forward and the max action is forward (2), pick the next highest predicted action
+      if actions[0] == 2:
+        return actions[1]
+      
+      return actions[0]
 
   # Acts with an ε-greedy policy (used for evaluation only)
-  def act_e_greedy(self, state, epsilon=0.001):  # High ε can reduce evaluation scores drastically
-    return np.random.randint(0, self.action_space) if np.random.random() < epsilon else self.act(state)
+  def act_e_greedy(self, state, forward=True, epsilon=0.001):  # High ε can reduce evaluation scores drastically
+    if np.random.random() < epsilon:
+      if not forward:
+        action = np.random.randint(0, self.action_space - 1)
+      else:
+        action = np.random.randint(0, self.action_space)
+
+    else:
+      action = self.act(state, forward)
+
+    return action
 
   def learn(self, mem):
     # Sample transitions
-    idxs, states, actions, returns, next_states, nonterminals, weights = mem.sample(self.batch_size)
+    idxs, states, actions, returns, next_states, nonterminals, forwards, weights = mem.sample(self.batch_size)
 
     # Calculate current state probabilities (online network noise already sampled)
     log_ps = self.online_net(states, log=True)  # Log probabilities log p(s_t, ·; θonline)
@@ -68,7 +87,14 @@ class Agent():
       # Calculate nth next state probabilities
       pns = self.online_net(next_states)  # Probabilities p(s_t+n, ·; θonline)
       dns = self.support.expand_as(pns) * pns  # Distribution d_t+n = (z, p(s_t+n, ·; θonline))
-      argmax_indices_ns = dns.sum(2).argmax(1)  # Perform argmax action selection using online network: argmax_a[(z, p(s_t+n, a; θonline))]
+
+      # Perform argmax action selection using online network: argmax_a[(z, p(s_t+n, a; θonline))]
+      argmax_indices_ns = dns.sum(2)
+
+      # mask all moving forward action values where forward is False to -1
+      argmax_indices_ns[~forwards, 2] = -1
+      argmax_indices_ns = argmax_indices_ns.argmax(1)
+
       self.target_net.reset_noise()  # Sample new target net noise
       pns = self.target_net(next_states)  # Probabilities p(s_t+n, ·; θtarget)
       pns_a = pns[range(self.batch_size), argmax_indices_ns]  # Double-Q probabilities p(s_t+n, argmax_a[(z, p(s_t+n, a; θonline))]; θtarget)

@@ -27,7 +27,13 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
       if done:
         state, reward_sum, done = env.reset(), 0, False
 
-      action = dqn.act_e_greedy(state)  # Choose an action ε-greedily
+      forward = True
+      if args.spot_q:
+        if not args.minigrid:
+          raise NotImplementedError("Spot Q only implemented for minigrid")
+        forward = env.check_forward_allowed()
+
+      action = dqn.act_e_greedy(state, forward)  # Choose an action ε-greedily
       state, reward, done = env.step(action)  # Step
       reward_sum += reward
       if args.render:

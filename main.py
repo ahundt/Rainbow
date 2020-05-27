@@ -26,7 +26,7 @@ parser.add_argument('--seed', type=int, default=123, help='Random seed')
 parser.add_argument('--disable-cuda', action='store_true', help='Disable CUDA')
 parser.add_argument('--minigrid', action='store_true',  help='Use Minigrid Env, also specify --env for a specific minigrid env')
 parser.add_argument('--env', type=str, default='MiniGrid-Empty-8x8-v0', help='MiniGrid Env, see  see https://github.com/maximecb/gym-minigrid for options. Example lava world: --minigrid --env MiniGrid-LavaCrossingS9N3-v0')
-# TODO add command line argument to choose minigrid environment
+parser.add_argument('--spot-q', action='store_true', help='use spot-q action masking')
 parser.add_argument('--game', type=str, default='space_invaders', choices=atari_py.list_games(), help='ATARI game')
 parser.add_argument('--T-max', type=int, default=int(50e6), metavar='STEPS', help='Number of training steps (4x number of frames)')
 parser.add_argument('--max-episode-length', type=int, default=int(108e3), metavar='LENGTH', help='Max episode length in game frames (0 to disable)')
@@ -137,8 +137,18 @@ while T < args.evaluation_size:
   if done:
     state, done = env.reset(), False
 
-  next_state, _, done = env.step(np.random.randint(0, action_space))
-  val_mem.append(state, None, None, done)
+  if args.spot_q:
+    forward = env.check_forward_allowed()
+  else:
+    forward = True
+
+  if forward:
+    next_state, _, done = env.step(np.random.randint(0, action_space))
+  else:
+    action = np.random.randint(0, action_space - 1)
+    next_state, _, done = env.step(action)
+
+  val_mem.append(state, None, None, done, forward)
   state = next_state
   T += 1
 
@@ -157,11 +167,16 @@ else:
     if T % args.replay_frequency == 0:
       dqn.reset_noise()  # Draw a new set of noisy weights
 
-    action = dqn.act(state)  # Choose an action greedily (with noisy weights)
+    if args.spot_q:
+      forward = env.check_forward_allowed()
+    else:
+      forward = True
+
+    action = dqn.act(state, forward)  # Choose an action greedily (with noisy weights)
     next_state, reward, done = env.step(action)  # Step
     if args.reward_clip > 0:
       reward = max(min(reward, args.reward_clip), -args.reward_clip)  # Clip rewards
-    mem.append(state, action, reward, done)  # Append transition to memory
+    mem.append(state, action, reward, done, forward)  # Append transition to memory
 
     # Train and test
     if T >= args.learn_start:
