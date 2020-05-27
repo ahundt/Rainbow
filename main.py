@@ -137,11 +137,14 @@ while T < args.evaluation_size:
   if done:
     state, done = env.reset(), False
 
+  # If using SPOT-Q, set forward to check if forward action is allowed
   if args.spot_q:
     forward = env.check_forward_allowed()
+  # Otherwise, set it to True
   else:
     forward = True
 
+  # remove forward from action space if it is an invalid action
   if forward:
     next_state, _, done = env.step(np.random.randint(0, action_space))
   else:
@@ -167,6 +170,7 @@ else:
     if T % args.replay_frequency == 0:
       dqn.reset_noise()  # Draw a new set of noisy weights
 
+    # as before, remove forward movement from the action space if it is invalid
     if args.spot_q:
       forward = env.check_forward_allowed()
     else:

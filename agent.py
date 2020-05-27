@@ -53,6 +53,7 @@ class Agent():
       action_eval = torch.flatten((self.online_net(state.unsqueeze(0)) * self.support).sum(2))
       actions = torch.argsort(action_eval, descending=True)[:2]
 
+      # forward is True if moving forward is a valid action
       if forward:
           return actions[0]
 
@@ -65,6 +66,7 @@ class Agent():
   # Acts with an ε-greedy policy (used for evaluation only)
   def act_e_greedy(self, state, forward=True, epsilon=0.001):  # High ε can reduce evaluation scores drastically
     if np.random.random() < epsilon:
+      # if we can't move forward (invalid), pick a random number from a smaller range
       if not forward:
         action = np.random.randint(0, self.action_space - 1)
       else:
@@ -91,8 +93,10 @@ class Agent():
       # Perform argmax action selection using online network: argmax_a[(z, p(s_t+n, a; θonline))]
       argmax_indices_ns = dns.sum(2)
 
+      # SPOT-Q
       # mask all moving forward action values where forward is False to -1
       argmax_indices_ns[~forwards, 2] = -1
+      # pick best remaining action
       argmax_indices_ns = argmax_indices_ns.argmax(1)
 
       self.target_net.reset_noise()  # Sample new target net noise

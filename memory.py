@@ -74,7 +74,7 @@ class ReplayMemory():
     self.t = 0  # Internal episode timestep counter
     self.transitions = SegmentTree(capacity)  # Store transitions in a wrap-around cyclic buffer within a sum tree for querying priorities
 
-  # Adds state and action at time t, reward and terminal at time t + 1
+  # Adds state and action at time t, reward and terminal at time t + 1, whether forward action is valid
   def append(self, state, action, reward, terminal, forward):
     state = state[-1].mul(255).to(dtype=torch.uint8, device=torch.device('cpu'))  # Only store last frame and discretise to save memory
     self.transitions.append(Transition(self.t, state, action, reward, not terminal, forward), self.transitions.max)  # Store new transition with maximum priority
@@ -111,6 +111,7 @@ class ReplayMemory():
     # Create un-discretised state and nth next state
     state = torch.stack([trans.state for trans in transition[:self.history]]).to(device=self.device).to(dtype=torch.float32).div_(255)
     next_state = torch.stack([trans.state for trans in transition[self.n:self.n + self.history]]).to(device=self.device).to(dtype=torch.float32).div_(255)
+    # Forward boolean value
     forward = torch.tensor([transition[self.history - 1].forward])
     # Discrete action to be used as index
     action = torch.tensor([transition[self.history - 1].action], dtype=torch.int64, device=self.device)
