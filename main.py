@@ -26,7 +26,8 @@ parser.add_argument('--seed', type=int, default=123, help='Random seed')
 parser.add_argument('--disable-cuda', action='store_true', help='Disable CUDA')
 parser.add_argument('--minigrid', action='store_true',  help='Use Minigrid Env, also specify --env for a specific minigrid env')
 parser.add_argument('--env', type=str, default='MiniGrid-Empty-8x8-v0', help='MiniGrid Env, see  see https://github.com/maximecb/gym-minigrid for options. Example lava world: --minigrid --env MiniGrid-LavaCrossingS9N3-v0')
-parser.add_argument('--spot-q', action='store_true', help='use spot-q action masking')
+parser.add_argument('--spot-q', action='store_true', help='use spot-q learning algorithm')
+parser.add_argument('--action-mask', action='store_true', help='use predictive action masking')
 parser.add_argument('--game', type=str, default='space_invaders', choices=atari_py.list_games(), help='ATARI game')
 parser.add_argument('--T-max', type=int, default=int(50e6), metavar='STEPS', help='Number of training steps (4x number of frames)')
 parser.add_argument('--max-episode-length', type=int, default=int(108e3), metavar='LENGTH', help='Max episode length in game frames (0 to disable)')
@@ -137,21 +138,19 @@ while T < args.evaluation_size:
   if done:
     state, done = env.reset(), False
 
-  # If using SPOT-Q, set forward to check if forward action is allowed
-  if args.spot_q:
-    forward = env.check_forward_allowed()
-  # Otherwise, set it to True
+  # if using an action mask, get the mask of allowed actions
+  if args.action_mask:
+    allowed_mask = env.get_allowed_mask()
+  # Otherwise, set all actions to allowed (1 is allowed, 0 is not allowed)
   else:
-    forward = True
+    allowed_mask = torch.ones(env.action_space(), device=args.device)
 
-  # remove forward from action space if it is an invalid action
-  if forward:
-    next_state, _, done = env.step(np.random.randint(0, action_space))
-  else:
-    action = np.random.randint(0, action_space - 1)
-    next_state, _, done = env.step(action)
+  # pick random action based on mask - get indices of positive values, pick random one from there
+  allowed_actions = np.argwhere(allowed_mask).flatten()
+  next_state, _, done = env.step(allowed_actions[np.random.randint(0,
+    allowed_actions.shape[0])])
 
-  val_mem.append(state, None, None, done, forward)
+  val_mem.append(state, None, None, done, allowed_mask)
   state = next_state
   T += 1
 
@@ -170,24 +169,24 @@ else:
     if T % args.replay_frequency == 0:
       dqn.reset_noise()  # Draw a new set of noisy weights
 
-    # as before, remove forward movement from the action space if it is invalid
-    if args.spot_q:
-      forward = env.check_forward_allowed()
+    # as before, remove invalid actions from the action space
+    if args.action_mask:
+      allowed_mask = env.get_allowed_mask()
     else:
-      forward = True
+      allowed_mask = torch.ones(env.action_space(), device = args.device)
 
-    action = dqn.act(state, forward)  # Choose an action greedily (with noisy weights)
+    action = dqn.act(state, allowed_mask)  # Choose an action greedily (with noisy weights)
     next_state, reward, done = env.step(action)  # Step
     if args.reward_clip > 0:
       reward = max(min(reward, args.reward_clip), -args.reward_clip)  # Clip rewards
-    mem.append(state, action, reward, done, forward)  # Append transition to memory
+    mem.append(state, action, reward, done, allowed_mask)  # Append transition to memory
 
     # Train and test
     if T >= args.learn_start:
       mem.priority_weight = min(mem.priority_weight + priority_weight_increase, 1)  # Anneal importance sampling weight β to 1
 
       if T % args.replay_frequency == 0:
-        dqn.learn(mem)  # Train with n-step distributional double-Q learning
+        dqn.learn(mem, args.spot_q)  # Train with n-step distributional double-Q learning
 
       if T % args.evaluation_interval == 0:
         dqn.eval()  # Set DQN (online network) to evaluation mode

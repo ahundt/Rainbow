@@ -31,9 +31,9 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
       if args.spot_q:
         if not args.minigrid:
           raise NotImplementedError("Spot Q only implemented for minigrid")
-        forward = env.check_forward_allowed()
+        allowed_actions = env.get_allowed_mask()
 
-      action = dqn.act_e_greedy(state, forward)  # Choose an action ε-greedily
+      action = dqn.act_e_greedy(state, allowed_actions)  # Choose an action ε-greedily
       state, reward, done = env.step(action)  # Step
       reward_sum += reward
       if args.render:
@@ -45,8 +45,8 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
   env.close()
 
   # Test Q-values over validation memory
-  for state in val_mem:  # Iterate over valid states
-    T_Qs.append(dqn.evaluate_q(state))
+  for state, allowed_actions in val_mem:  # Iterate over valid states
+    T_Qs.append(dqn.evaluate_q(state, allowed_actions))
 
   avg_reward, avg_Q = sum(T_rewards) / len(T_rewards), sum(T_Qs) / len(T_Qs)
   if not evaluate:

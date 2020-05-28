@@ -108,9 +108,6 @@ class MinigridEnv():
         T.Grayscale(), T.ToTensor()])
 
     self.actions = len(self.env.actions) - 1 # don't allow done action
-    if args.spot_q:
-        # TODO would need to extend this if we want to support additional tasks (like door opening)
-        self.actions = 3 # just allow left, right, forward
     self.device = args.device
     self.window = args.history_length  # Number of frames to concatenate
     self.state_buffer = deque([], maxlen=args.history_length)
@@ -130,17 +127,22 @@ class MinigridEnv():
     for _ in range(self.window):
       self.state_buffer.append(torch.zeros(self.img_size, self.img_size, device=self.device))
 
-  def check_forward_allowed(self):
+  def get_allowed_mask(self):
+    allowed = torch.zeros(self.actions, device=self.device)
+    # we can always turn left and right
+    allowed[:2] = 1
+
+    # check if forward is ok
     grid = self.env.grid
     next_pos = self.env.front_pos
     
     next_pos_obj = grid.get(next_pos[0], next_pos[1])
     if next_pos_obj is not None:
-        # don't allow moving forward into lava or wall
-        if next_pos_obj.type == 'lava' or next_pos_obj.type == 'wall':
-            return False
+      # don't allow moving forward into lava or wall
+      if not next_pos_obj.type == 'lava' and not next_pos_obj.type == 'wall':
+        allowed[2] = 1
 
-    return True
+    return allowed
 
   def reset(self):
     self._reset_buffer()
