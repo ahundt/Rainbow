@@ -5,8 +5,9 @@ import numpy as np
 import torch
 
 Transition = namedtuple('Transition', ('timestep', 'state', 'action', 'reward', 'nonterminal', 'allowed_actions'))
-# TODO fix this to be general
-blank_trans = Transition(0, torch.zeros(84, 84, dtype=torch.uint8), None, 0, False, torch.ones(6))
+# TODO fix this to be general, right now allow turning left/right or moving forward by default
+default_allowed = np.array([1, 1, 1, 0, 0, 0])
+blank_trans = Transition(0, torch.zeros(84, 84, dtype=torch.uint8), None, 0, False, default_allowed)
 
 # Segment tree data structure where parent node values are sum/max of children node values
 class SegmentTree():
@@ -129,7 +130,7 @@ class ReplayMemory():
     probs, idxs, tree_idxs, states, actions, returns, next_states, nonterminals, allowed_actions = zip(*batch)
     states, next_states = torch.stack(states), torch.stack(next_states)
     actions, returns, nonterminals = torch.cat(actions), torch.cat(returns), torch.stack(nonterminals)
-    allowed_actions = torch.stack(allowed_actions)
+    allowed_actions = np.vstack(allowed_actions)
     probs = np.array(probs, dtype=np.float32) / p_total  # Calculate normalised probabilities
     capacity = self.capacity if self.transitions.full else self.transitions.index
     weights = (capacity * probs) ** -self.priority_weight  # Compute importance-sampling weights w

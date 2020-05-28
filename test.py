@@ -27,10 +27,9 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
       if done:
         state, reward_sum, done = env.reset(), 0, False
 
-      forward = True
-      if args.spot_q:
+      if args.action_mask:
         if not args.minigrid:
-          raise NotImplementedError("Spot Q only implemented for minigrid")
+          raise NotImplementedError("Action mask only implemented for minigrid")
         allowed_actions = env.get_allowed_mask()
 
       action = dqn.act_e_greedy(state, allowed_actions)  # Choose an action ε-greedily

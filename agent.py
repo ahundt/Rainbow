@@ -51,12 +51,15 @@ class Agent():
   # Acts based on single state (no batch)
   def act(self, state, allowed_mask):
     with torch.no_grad():
-      action_eval = torch.flatten((self.online_net(state.unsqueeze(0)) * self.support).sum(2))
+      action_eval = torch.flatten((self.online_net(state.unsqueeze(0)) * self.support).sum(2)).numpy()
 
       # choose maximum value action that is in the allowed mask
-      action_eval = action_eval * allowed_mask
+
+      # make sure all the values are non-negative
+      action_eval = action_eval - min(np.min(action_eval), 0)
+      action_eval = np.multiply(action_eval, allowed_mask)
       
-      return action_eval.argmax()
+      return np.argmax(action_eval).item()
 
   # Acts with an ε-greedy policy (used for evaluation only)
   def act_e_greedy(self, state, allowed_mask, epsilon=0.001):  # High ε can reduce evaluation scores drastically
@@ -86,13 +89,13 @@ class Agent():
       dns = self.support.expand_as(pns) * pns  # Distribution d_t+n = (z, p(s_t+n, ·; θonline))
 
       # Action Masking 
-      argmax_indices_masked = dns.sum(2)
+      argmax_indices_masked = dns.sum(2).numpy()
       # mask all moving forward action values where forward is False to 0
       # TODO need to check if all actions can have negative value, this would fail in that case
-      argmax_indices_masked = argmax_indices_masked * allowed_actions
+      argmax_indices_masked = np.multiply(argmax_indices_masked, allowed_actions)
 
       # pick best remaining action
-      argmax_indices_masked = argmax_indices_masked.argmax(1)
+      argmax_indices_masked = np.argmax(argmax_indices_masked, axis=1)
 
       self.target_net.reset_noise()  # Sample new target net noise
       pns = self.target_net(next_states)  # Probabilities p(s_t+n, ·; θtarget)
@@ -163,9 +166,9 @@ class Agent():
   # Evaluates Q-value based on single state (no batch)
   def evaluate_q(self, state, allowed_actions):
     with torch.no_grad():
-      action_values = (self.online_net(state.unsqueeze(0)) * self.support).sum(2)
-      action_values = action_values * allowed_actions
-      selected_action = action_values.max(1)[0].item()
+      action_values = (self.online_net(state.unsqueeze(0)) * self.support).sum(2).numpy()
+      action_values = np.multiply(action_values, allowed_actions)
+      selected_action = np.argmax(action_values).item()
       return selected_action
 
   def train(self):

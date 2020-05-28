@@ -143,7 +143,7 @@ while T < args.evaluation_size:
     allowed_mask = env.get_allowed_mask()
   # Otherwise, set all actions to allowed (1 is allowed, 0 is not allowed)
   else:
-    allowed_mask = torch.ones(env.action_space(), device=args.device)
+    allowed_mask = np.ones(env.action_space())
 
   # pick random action based on mask - get indices of positive values, pick random one from there
   allowed_actions = np.argwhere(allowed_mask).flatten()
@@ -173,7 +173,7 @@ else:
     if args.action_mask:
       allowed_mask = env.get_allowed_mask()
     else:
-      allowed_mask = torch.ones(env.action_space(), device = args.device)
+      allowed_mask = no.ones(env.action_space())
 
     action = dqn.act(state, allowed_mask)  # Choose an action greedily (with noisy weights)
     next_state, reward, done = env.step(action)  # Step

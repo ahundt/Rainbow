@@ -128,9 +128,10 @@ class MinigridEnv():
       self.state_buffer.append(torch.zeros(self.img_size, self.img_size, device=self.device))
 
   def get_allowed_mask(self):
-    allowed = torch.zeros(self.actions, device=self.device)
-    # we can always turn left and right
-    allowed[:2] = 1
+    allowed = np.zeros(self.actions)
+    # TODO modify this initialization depending on the selected task
+    # set left, right, forward to allowed, all others not allowed for now
+    allowed[:3] = 1
 
     # check if forward is ok
     grid = self.env.grid
@@ -139,8 +140,8 @@ class MinigridEnv():
     next_pos_obj = grid.get(next_pos[0], next_pos[1])
     if next_pos_obj is not None:
       # don't allow moving forward into lava or wall
-      if not next_pos_obj.type == 'lava' and not next_pos_obj.type == 'wall':
-        allowed[2] = 1
+      if next_pos_obj.type == 'lava' or next_pos_obj.type == 'wall':
+        allowed[2] = 0
 
     return allowed
 
