@@ -173,7 +173,7 @@ else:
     if args.action_mask:
       allowed_mask = env.get_allowed_mask()
     else:
-      allowed_mask = no.ones(env.action_space())
+      allowed_mask = np.ones(env.action_space())
 
     action = dqn.act(state, allowed_mask)  # Choose an action greedily (with noisy weights)
     next_state, reward, done = env.step(action)  # Step
