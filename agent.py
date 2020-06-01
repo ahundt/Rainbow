@@ -88,10 +88,11 @@ class Agent():
       pns = self.online_net(next_states)  # Probabilities p(s_t+n, ·; θonline)
       dns = self.support.expand_as(pns) * pns  # Distribution d_t+n = (z, p(s_t+n, ·; θonline))
 
-      # Action Masking 
+      # Action Masking - mask all moving forward action values where forward is False to 0
       argmax_indices_masked = dns.sum(2).numpy()
-      # mask all moving forward action values where forward is False to 0
-      # TODO need to check if all actions can have negative value, this would fail in that case
+
+      # make sure all values are nonnegative
+      allowed_actions = allowed_actions - min(np.min(allowed_actions), 0)
       argmax_indices_masked = np.multiply(argmax_indices_masked, allowed_actions)
 
       # pick best remaining action
@@ -112,14 +113,11 @@ class Agent():
       u[(l < (self.atoms - 1)) * (l == u)] += 1
 
       # Distribute probability of Tz
-      m = states.new_zeros(self.batch_size, self.atoms)
+      m_reg = states.new_zeros(self.batch_size, self.atoms)
       offset = torch.linspace(0, ((self.batch_size - 1) * self.atoms), self.batch_size).unsqueeze(1).expand(self.batch_size, self.atoms).to(actions)
-      m.view(-1).index_add_(0, (l + offset).view(-1), (pns_a * (u.float() - b)).view(-1))  # m_l = m_l + p(s_t+n, a*)(u - b)
-      m.view(-1).index_add_(0, (u + offset).view(-1), (pns_a * (b - l.float())).view(-1))  # m_u = m_u + p(s_t+n, a*)(b - l)
+      m_reg.view(-1).index_add_(0, (l + offset).view(-1), (pns_a * (u.float() - b)).view(-1))  # m_l = m_l + p(s_t+n, a*)(u - b)
+      m_reg.view(-1).index_add_(0, (u + offset).view(-1), (pns_a * (b - l.float())).view(-1))  # m_u = m_u + p(s_t+n, a*)(b - l)
 
-    loss = -torch.sum(m * log_ps_a, 1)  # Cross-entropy loss (minimises DKL(m||p(s_t, a_t)))
-
-    with torch.no_grad():
       if spotq:
         # get original chosen actions (for spot q loss)
         argmax_indices_ns = dns.sum(2).argmax(1)
@@ -127,25 +125,17 @@ class Agent():
         extra_term_inds = (argmax_indices_masked != argmax_indices_ns)
         pns_a_spotq = pns[range(self.batch_size), argmax_indices_masked]
 
-        # Compute Tz (Bellman operator T applied to z)
-        Tz = returns.unsqueeze(1) + nonterminals * (self.discount ** self.n) * self.support.unsqueeze(0)  # Tz = R^n + (γ^n)z (accounting for terminal states)
-        Tz = Tz.clamp(min=self.Vmin, max=self.Vmax)  # Clamp between supported values
-        # Compute L2 projection of Tz onto fixed support z
-        b = (Tz - self.Vmin) / self.delta_z  # b = (Tz - Vmin) / Δz
-        l, u = b.floor().to(torch.int64), b.ceil().to(torch.int64)
-        # Fix disappearing probability mass when l = b = u (b is int)
-        l[(u > 0) * (l == u)] -= 1
-        u[(l < (self.atoms - 1)) * (l == u)] += 1
-
         # Distribute probability of Tz
-        m = states.new_zeros(self.batch_size, self.atoms)
+        m_spot = states.new_zeros(self.batch_size, self.atoms)
         offset = torch.linspace(0, ((self.batch_size - 1) * self.atoms), self.batch_size).unsqueeze(1).expand(self.batch_size, self.atoms).to(actions)
-        m.view(-1).index_add_(0, (l + offset).view(-1), (pns_a_spotq * (u.float() - b)).view(-1))  # m_l = m_l + p(s_t+n, a*)(u - b)
-        m.view(-1).index_add_(0, (u + offset).view(-1), (pns_a_spotq * (b - l.float())).view(-1))  # m_u = m_u + p(s_t+n, a*)(b - l)
+        m_spot.view(-1).index_add_(0, (l + offset).view(-1), (pns_a_spotq * (u.float() - b)).view(-1))  # m_l = m_l + p(s_t+n, a*)(u - b)
+        m_spot.view(-1).index_add_(0, (u + offset).view(-1), (pns_a_spotq * (b - l.float())).view(-1))  # m_u = m_u + p(s_t+n, a*)(b - l)
 
-        spotq_loss = m * log_ps_a
+        spotq_loss = m_spot * log_ps_a
         spotq_loss[~extra_term_inds] = 0
 
+    loss = -torch.sum(m_reg * log_ps_a, 1)  # Cross-entropy loss (minimises DKL(m||p(s_t, a_t)))
+    # add the spot-q loss term if using spot-q
     if spotq:
       spotq_loss = Variable(spotq_loss.data, requires_grad=True)
       loss += -torch.sum(spotq_loss, 1)
@@ -166,10 +156,8 @@ class Agent():
   # Evaluates Q-value based on single state (no batch)
   def evaluate_q(self, state, allowed_actions):
     with torch.no_grad():
-      action_values = (self.online_net(state.unsqueeze(0)) * self.support).sum(2).numpy()
-      action_values = np.multiply(action_values, allowed_actions)
-      selected_action = np.argmax(action_values).item()
-      return selected_action
+      action_values = (self.online_net(state.unsqueeze(0)) * self.support).sum(2).max(1)[0].item()
+      return action_values
 
   def train(self):
     self.online_net.train()
