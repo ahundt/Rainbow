@@ -8,7 +8,6 @@ from torch.autograd import Variable
 
 from model import DQN
 
-
 class Agent():
   def __init__(self, args, env):
     self.action_space = env.action_space()
