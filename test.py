@@ -5,6 +5,7 @@ import plotly
 from plotly.graph_objs import Scatter
 from plotly.graph_objs.scatter import Line
 import torch
+import numpy as np
 
 from env import Env, MinigridEnv
 
