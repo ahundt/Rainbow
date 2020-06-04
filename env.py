@@ -11,6 +11,8 @@ import gym
 from gym_minigrid.minigrid import Grid
 import numpy as np
 
+from custom_envs import *
+
 class Env():
   def __init__(self, args):
     self.device = args.device
@@ -101,7 +103,13 @@ class Env():
 
 class MinigridEnv():
   def __init__(self, args):
-    self.env = gym.make(args.env).unwrapped
+    if args.progress_reward:
+      self.env = LavaCrossingSpotRewardEnv()
+      self.progress_reward = True
+    else:
+      self.env = gym.make(args.env).unwrapped
+      self.progress_reward = False
+
     self.img_size = 84
 
     self.resize = T.Compose([T.ToPILImage(), T.Resize(self.img_size, interpolation=Image.CUBIC),
@@ -152,11 +160,14 @@ class MinigridEnv():
     self.state_buffer.append(obs[0])
     return torch.stack(list(self.state_buffer), 0)
 
-  def step(self, action):
+  def step(self, action, agent_pos=None):
     # figure out actions
-    _, reward, done, _ = self.env.step(action)
-    obs = self._get_state()
+    if self.progress_reward:
+      _, reward, done = self.env.step(action, agent_pos)
+    else:
+      _, reward, done = self.env.step(action)
 
+    obs = self._get_state()
     self.state_buffer.append(obs[0])
 
     # Return state, reward, done
@@ -164,14 +175,17 @@ class MinigridEnv():
 
   # Uses loss of life as terminal signal
   def train(self):
-    self.training = True
+    self.env.train()
 
   # Uses standard terminal signal
   def eval(self):
-    self.training = False
+    self.env.eval()
 
   def action_space(self):
     return self.actions
+
+  def agent_pos(self):
+      return self.env.agent_pos
 
   def render(self):
     state = self._get_state().cpu().numpy()[0]
