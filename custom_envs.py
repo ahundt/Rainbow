@@ -36,8 +36,8 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
 
       for r_n, c_n in neighbors:
         # skip positions that are out of bounds
-        if r_n >= self.reward_grid.shape[0]: continue
-        elif c_n >= self.reward_grid.shape[1]: continue
+        if r_n >= self.reward_grid.shape[0] or r_n < 0: continue
+        elif c_n >= self.reward_grid.shape[1] or c_n < 0: continue
         # don't process unreachable squares (lava or wall, marked as 1
         elif self.reward_grid[r_n, c_n] == 1: continue
         # don't process squares that have already been processed
@@ -69,17 +69,23 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
       reward = I_sr * P
       return reward
     else:
-      # during evaluation, return the regular reward
-      return super()._reward()
+      if (self.agent_pos == self.goal_pos).all():
+        return super()._reward()
+      return 0
 
   def step(self, action, last_pos=None):
     if self.training:
       if last_pos is None:
         raise ValueError("Must provide last position of agent to step function \
           at train time if using progress reward")
+      
+      next_state, _, done, _ = super().step(action)
+      reward = self._reward(last_pos)
 
-    next_state, _, done, _ = super().step(action)
-    reward = self._reward(last_pos)
+    else:
+      # run the step method of the superclass
+      next_state, reward, done, _ = super().step(action)
+
     return next_state, reward, done
 
   def eval(self):
