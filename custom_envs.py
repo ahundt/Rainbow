@@ -51,36 +51,47 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
 
     # finally, invert the values in the reward grid to get P
     # use 2 in the numerator so that reaching the goal has reward of 1
-    self.reward_grid = 2 / self.reward_grid
+    # first need to store lava/wall spots so we can set those to have 0 reward
+    unreachable_inds = (self.reward_grid == 1)
+    self.reward_grid = np.max(self.reward_grid) - self.reward_grid
+    # set unreachable spots to have 0 reward
+    self.reward_grid[unreachable_inds] = 0
 
   def _reward(self, last_pos=None):
     # hacky solution - ideally we raise an exception if last_pos isn't provided
     # at train time, however, this reward function is called when calling the
     # step method of the base class, and we cannot pass last_pos to that step
     # method
-    if self.training and last_pos is not None:
-      # here, we use the spot reward
-      r, c = self.agent_pos
-      r_l, c_l = last_pos
-      # get I_sr (0 if reward has decreased from last timestep)
-      I_sr = int(self.reward_grid[r, c] >= self.reward_grid[r_l, c_l])
-      # get P (reward grid value)
-      P = self.reward_grid[r, c]
-      reward = I_sr * P
-      return reward
+    if self.training:
+      if last_pos is not None:
+        # here, we use the spot reward
+        r, c = self.agent_pos
+        r_l, c_l = last_pos
+        # get I_sr (0 if reward has decreased from last timestep)
+        I_sr = int(self.reward_grid[r, c] >= self.reward_grid[r_l, c_l])
+        # get P (reward grid value)
+        P = self.reward_grid[r, c]
+        reward = I_sr * P
+        return reward
+      else:
+        # we reach this condition when we call the step method of the superclass
+        # while training and reach the goal - since the indicator must have been
+        # positive in this scenario, we return the value of P
+        # this is hacky because of the way we are extending the grid
+        r, c = self.goal_pos
+        return self.reward_grid[r, c]
     else:
-      if (self.agent_pos == self.goal_pos).all():
-        return super()._reward()
-      return 0
+      return super()._reward()
 
   def step(self, action, last_pos=None):
     if self.training:
       if last_pos is None:
         raise ValueError("Must provide last position of agent to step function \
           at train time if using progress reward")
-      
-      next_state, _, done, _ = super().step(action)
-      reward = self._reward(last_pos)
+ 
+      next_state, reward, done, _ = super().step(action)
+      if not done:
+        reward = self._reward(last_pos)
 
     else:
       # run the step method of the superclass
@@ -115,3 +126,8 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
         raise NotImplementedError(str(i) + " is not supported")
 
     self.reward_grid = np.array(grid).reshape(self.grid.height, self.grid.width)
+    self._gen_reward()
+
+    # return first observation
+    obs = self.gen_obs()
+    return obs

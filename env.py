@@ -165,7 +165,7 @@ class MinigridEnv():
     if self.progress_reward:
       _, reward, done = self.env.step(action, agent_pos)
     else:
-      _, reward, done = self.env.step(action)
+      _, reward, done, _ = self.env.step(action)
 
     obs = self._get_state()
     self.state_buffer.append(obs[0])
@@ -173,13 +173,13 @@ class MinigridEnv():
     # Return state, reward, done
     return torch.stack(list(self.state_buffer), 0), reward, done
 
-  # Uses loss of life as terminal signal
   def train(self):
-    self.env.train()
+    if self.progress_reward:
+      self.env.train()
 
-  # Uses standard terminal signal
   def eval(self):
-    self.env.eval()
+    if self.progress_reward:
+      self.env.eval()
 
   def action_space(self):
     return self.actions

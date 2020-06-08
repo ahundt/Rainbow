@@ -137,16 +137,12 @@ priority_weight_increase = (1 - args.priority_weight) / (args.T_max - args.learn
 val_mem = ReplayMemory(args, args.evaluation_size)
 T, done = 0, True
 
-if args.progress_reward:
-  # set env to eval mode
-  env.eval()
-
+# set env to eval mode
+env.eval()
 while T < args.evaluation_size:
   if done:
     state, done = env.reset(), False
-    if args.progress_reward:
-      # set env to eval mode
-      env.eval()
+    env.eval()
 
   # if using an action mask, get the mask of allowed actions
   if args.action_mask:
@@ -169,16 +165,16 @@ if args.evaluate:
   avg_reward, avg_Q = test(args, 0, dqn, val_mem, metrics, results_dir, evaluate=True)  # Test
   print('Avg. reward: ' + str(avg_reward) + ' | Avg. Q: ' + str(avg_Q))
 else:
-  # Training loop
-  if args.progress_reward:
-    # set env to training mode
-    env.train()
+  # set env to training mode
+  env.train()
 
+  # Training loop
   dqn.train()
   T, done = 0, True
   for T in trange(1, args.T_max + 1):
     if done:
       state, done = env.reset(), False
+      env.train()
 
     if T % args.replay_frequency == 0:
       dqn.reset_noise()  # Draw a new set of noisy weights
