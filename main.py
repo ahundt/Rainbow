@@ -29,7 +29,7 @@ parser.add_argument('--env', type=str, default='MiniGrid-Empty-8x8-v0', help='Mi
 parser.add_argument('--spot-q', action='store_true', help='use spot-q learning algorithm')
 parser.add_argument('--action-mask', action='store_true', help='use predictive action masking')
 parser.add_argument('--progress-reward', action='store_true', help='use progress reward')
-parser.add_argument('--spot-tr', action='store_true', help='use spot trial reward')
+parser.add_argument('--trial-reward', action='store_true', help='use spot trial reward')
 parser.add_argument('--game', type=str, default='space_invaders', choices=atari_py.list_games(), help='ATARI game')
 parser.add_argument('--T-max', type=int, default=int(50e6), metavar='STEPS', help='Number of training steps (4x number of frames)')
 parser.add_argument('--max-episode-length', type=int, default=int(108e3), metavar='LENGTH', help='Max episode length in game frames (0 to disable)')
@@ -172,6 +172,12 @@ else:
   dqn.train()
   T, done = 0, True
   for T in trange(1, args.T_max + 1):
+    # set number of states to collect data from
+    if args.trial_reward:
+      trial_len = 4
+    else:
+      trial_len = 1
+
     if done:
       state, done = env.reset(), False
       env.train()
@@ -179,23 +185,46 @@ else:
     if T % args.replay_frequency == 0:
       dqn.reset_noise()  # Draw a new set of noisy weights
 
-    # as before, remove invalid actions from the action space
-    if args.action_mask:
-      allowed_mask = env.get_allowed_mask()
-    else:
-      allowed_mask = np.ones(env.action_space())
+    # now collect next 4 states and compute trial reward
+    mem_state, mem_next_state, mem_action, mem_reward, mem_done, mem_allowed_mask  = \
+        None, None, None, None, None, None
+    turn = False
+    for s in range(trial_len):
+      # as before, remove invalid actions from the action space
+      if args.action_mask:
+        allowed_mask = env.get_allowed_mask()
+      else:
+        allowed_mask = np.ones(env.action_space())
 
-    action = dqn.act(state, allowed_mask)  # Choose an action greedily (with noisy weights)
-    if args.progress_reward:
-      # get position of agent and store, add cmd line arg
-      agent_pos = env.agent_pos()
-      next_state, reward, done = env.step(action, agent_pos)  # Step
-    else:
-      next_state, reward, done = env.step(action)  # Step
+      action = dqn.act(state, allowed_mask)  # Choose an action greedily (with noisy weights)
+      if args.progress_reward:
+        # get position of agent and store, add cmd line arg
+        agent_pos = env.agent_pos()
+        next_state, reward, done = env.step(action, agent_pos)  # Step
+      else:
+        next_state, reward, done = env.step(action)  # Step
 
-    if args.reward_clip > 0:
-      reward = max(min(reward, args.reward_clip), -args.reward_clip)  # Clip rewards
-    mem.append(state, action, reward, done, allowed_mask)  # Append transition to memory
+      if args.reward_clip > 0:
+        reward = max(min(reward, args.reward_clip), -args.reward_clip)  # Clip rewards
+
+      if s == 0:
+        mem_state, mem_next_state, mem_action, mem_reward, mem_done, mem_allowed_mask = \
+            state, next_state, action, reward, done, allowed_mask
+        # only apply trial reward to turns
+        if action == 2:
+          break
+      else:
+        # if we successfully move forward in the next 3 steps then we do not modify reward
+        # otherwise set reward to 0
+        if action == 2:
+          # if we increase reward, don't need to modify reward
+          if reward > 0:
+            break
+          mem_reward = 0
+        elif s == trial_len - 1:
+          mem_reward = 0
+
+    mem.append(mem_state, mem_action, mem_reward, mem_done, mem_allowed_mask)  # Append transition to memory
 
     # Train and test
     if T >= args.learn_start:

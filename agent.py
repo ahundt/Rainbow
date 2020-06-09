@@ -19,6 +19,7 @@ class Agent():
     self.batch_size = args.batch_size
     self.n = args.multi_step
     self.discount = args.discount
+    self.trial_reward = args.trial_reward
 
     self.online_net = DQN(args, self.action_space).to(device=args.device)
     if args.model:  # Load pretrained model if provided
@@ -87,11 +88,11 @@ class Agent():
       pns = self.online_net(next_states)  # Probabilities p(s_t+n, ·; θonline)
       dns = self.support.expand_as(pns) * pns  # Distribution d_t+n = (z, p(s_t+n, ·; θonline))
 
-      # Action Masking - mask all moving forward action values where forward is False to 0
+      # Action Masking - mask invalid actions
       argmax_indices_masked = dns.sum(2).numpy()
 
       # make sure all values are nonnegative
-      allowed_actions = allowed_actions - min(np.min(allowed_actions), 0)
+      argmax_indices_masked = argmax_indices_masked - min(np.min(argmax_indices_masked), 0)
       argmax_indices_masked = np.multiply(argmax_indices_masked, allowed_actions)
 
       # pick best remaining action

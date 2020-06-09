@@ -1,6 +1,7 @@
 from gym_minigrid.envs.crossing import LavaCrossingEnv
 import numpy as np
 from queue import Queue
+import cv2
 
 class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
   def __init__(self):
@@ -54,14 +55,19 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
     # first need to store lava/wall spots so we can set those to have 0 reward
     unreachable_inds = (self.reward_grid == 1)
     self.reward_grid = np.max(self.reward_grid) - self.reward_grid
-    # set unreachable spots to have 0 reward
-    self.reward_grid[unreachable_inds] = 0
+    # normalize to be from 0 to 1
+    self.reward_grid = self.reward_grid / np.max(self.reward_grid)
+    # set unreachable spots to have -1 reward
+    self.reward_grid[unreachable_inds] = -1
 
-  def _reward(self, last_pos=None):
+  def _reward(self, action=None, last_pos=None):
     # hacky solution - ideally we raise an exception if last_pos isn't provided
     # at train time, however, this reward function is called when calling the
     # step method of the base class, and we cannot pass last_pos to that step
     # method
+    # TODO set weighting factor, this way multiply reward on turns by 0.2
+    #base_reward = np.ones(3) * 0.2
+    #base_reward[-1] = 1
     if self.training:
       if last_pos is not None:
         # here, we use the spot reward
@@ -72,6 +78,9 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
         # get P (reward grid value)
         P = self.reward_grid[r, c]
         reward = I_sr * P
+        #if action is not None:
+        #  reward *= base_reward[action]
+
         return reward
       else:
         # we reach this condition when we call the step method of the superclass
@@ -79,6 +88,7 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
         # positive in this scenario, we return the value of P
         # this is hacky because of the way we are extending the grid
         r, c = self.goal_pos
+        # we must have moved forward to reach the goal, so base reward is 1
         return self.reward_grid[r, c]
     else:
       return super()._reward()
@@ -90,8 +100,10 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
           at train time if using progress reward")
  
       next_state, reward, done, _ = super().step(action)
+
+      # if we have finished, the step method has already called the reward method
       if not done:
-        reward = self._reward(last_pos)
+        reward = self._reward(action, last_pos)
 
     else:
       # run the step method of the superclass
