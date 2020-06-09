@@ -205,6 +205,7 @@ else:
       num_turns = 0
 
     # apply trial reward, if we have turned 3 or more times consecutively, set reward to 0
+    # TODO set reward of initial turn to 0, not final turn
     if args.trial_reward:
       if num_turns >= 3:
         reward = 0
