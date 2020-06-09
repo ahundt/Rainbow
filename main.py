@@ -132,7 +132,6 @@ else:
 
 priority_weight_increase = (1 - args.priority_weight) / (args.T_max - args.learn_start)
 
-
 # Construct validation memory
 val_mem = ReplayMemory(args, args.evaluation_size)
 T, done = 0, True
@@ -171,60 +170,49 @@ else:
   # Training loop
   dqn.train()
   T, done = 0, True
-  for T in trange(1, args.T_max + 1):
-    # set number of states to collect data from
-    if args.trial_reward:
-      trial_len = 4
-    else:
-      trial_len = 1
 
+  # keep track of consecutive turns (trial reward)
+  num_turns = 0
+
+  for T in trange(1, args.T_max + 1):
     if done:
       state, done = env.reset(), False
+      num_turns = 0
       env.train()
 
     if T % args.replay_frequency == 0:
       dqn.reset_noise()  # Draw a new set of noisy weights
 
-    # now collect next 4 states and compute trial reward
-    mem_state, mem_next_state, mem_action, mem_reward, mem_done, mem_allowed_mask  = \
-        None, None, None, None, None, None
-    turn = False
-    for s in range(trial_len):
-      # as before, remove invalid actions from the action space
-      if args.action_mask:
-        allowed_mask = env.get_allowed_mask()
-      else:
-        allowed_mask = np.ones(env.action_space())
+    # as before, remove invalid actions from the action space
+    if args.action_mask:
+      allowed_mask = env.get_allowed_mask()
+    else:
+      allowed_mask = np.ones(env.action_space())
 
-      action = dqn.act(state, allowed_mask)  # Choose an action greedily (with noisy weights)
-      if args.progress_reward:
-        # get position of agent and store, add cmd line arg
-        agent_pos = env.agent_pos()
-        next_state, reward, done = env.step(action, agent_pos)  # Step
-      else:
-        next_state, reward, done = env.step(action)  # Step
+    action = dqn.act(state, allowed_mask)  # Choose an action greedily (with noisy weights)
 
-      if args.reward_clip > 0:
-        reward = max(min(reward, args.reward_clip), -args.reward_clip)  # Clip rewards
+    if args.progress_reward:
+      # get position of agent and store, add cmd line arg
+      agent_pos = env.agent_pos()
+      next_state, reward, done = env.step(action, agent_pos)  # Step
+    else:
+      next_state, reward, done = env.step(action)  # Step
 
-      if s == 0:
-        mem_state, mem_next_state, mem_action, mem_reward, mem_done, mem_allowed_mask = \
-            state, next_state, action, reward, done, allowed_mask
-        # only apply trial reward to turns
-        if action == 2:
-          break
-      else:
-        # if we successfully move forward in the next 3 steps then we do not modify reward
-        # otherwise set reward to 0
-        if action == 2:
-          # if we increase reward, don't need to modify reward
-          if reward > 0:
-            break
-          mem_reward = 0
-        elif s == trial_len - 1:
-          mem_reward = 0
+    # update num turns (trial reward)
+    if action != 2:
+      num_turns += 1
+    else:
+      num_turns = 0
 
-    mem.append(mem_state, mem_action, mem_reward, mem_done, mem_allowed_mask)  # Append transition to memory
+    # apply trial reward, if we have turned 3 or more times consecutively, set reward to 0
+    if args.trial_reward:
+      if num_turns >= 3:
+        reward = 0
+
+    if args.reward_clip > 0:
+      reward = max(min(reward, args.reward_clip), -args.reward_clip)  # Clip rewards
+
+    mem.append(state, action, reward, done, allowed_mask)  # Append transition to memory
 
     # Train and test
     if T >= args.learn_start:
