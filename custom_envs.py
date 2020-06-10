@@ -68,20 +68,20 @@ class LavaCrossingSpotRewardEnv(EmptyEnv5x5):
     # step method of the base class, and we cannot pass last_pos to that step
     # method
     # TODO set weighting factor, this way multiply reward on turns by 0.2
-    base_reward = np.ones(3) * 0.5
-    base_reward[-1] = 1
+    #base_reward = np.ones(3) * 0.5
+    #base_reward[-1] = 1
     if self.training:
       if last_pos is not None:
         # here, we use the spot reward
         r, c = self.agent_pos
         r_l, c_l = last_pos
         # get I_sr (0 if reward has decreased from last timestep)
-        I_sr = int(self.reward_grid[r, c] >= self.reward_grid[r_l, c_l])
+        I_sr = int(self.reward_grid[c, r] >= self.reward_grid[c_l, r_l])
         # get P (reward grid value)
-        P = self.reward_grid[r, c]
+        P = self.reward_grid[c, r]
         reward = I_sr * P
-        if action is not None:
-          reward *= base_reward[action]
+        #if action is not None:
+        #  reward *= base_reward[action]
 
         return reward
       else:
@@ -91,7 +91,7 @@ class LavaCrossingSpotRewardEnv(EmptyEnv5x5):
         # this is hacky because of the way we are extending the grid
         r, c = self.goal_pos
         # we must have moved forward to reach the goal, so base reward is 1
-        return self.reward_grid[r, c]
+        return self.reward_grid[c, r]
     else:
       return super()._reward()
 
