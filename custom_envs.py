@@ -66,8 +66,8 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
     # step method of the base class, and we cannot pass last_pos to that step
     # method
     # TODO set weighting factor, this way multiply reward on turns by 0.2
-    #base_reward = np.ones(3) * 0.2
-    #base_reward[-1] = 1
+    base_reward = np.ones(3) * 0.5
+    base_reward[-1] = 1
     if self.training:
       if last_pos is not None:
         # here, we use the spot reward
@@ -78,8 +78,8 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
         # get P (reward grid value)
         P = self.reward_grid[r, c]
         reward = I_sr * P
-        #if action is not None:
-        #  reward *= base_reward[action]
+        if action is not None:
+          reward *= base_reward[action]
 
         return reward
       else:

@@ -191,12 +191,7 @@ else:
 
     action = dqn.act(state, allowed_mask)  # Choose an action greedily (with noisy weights)
 
-    if args.progress_reward:
-      # get position of agent and store, add cmd line arg
-      agent_pos = env.agent_pos()
-      next_state, reward, done = env.step(action, agent_pos)  # Step
-    else:
-      next_state, reward, done = env.step(action)  # Step
+    next_state, reward, done = env.step(action)  # Step
 
     # TODO doesn't work if we don't use action mask
     # update num turns (trial reward)

@@ -19,6 +19,7 @@ class Agent():
     self.batch_size = args.batch_size
     self.n = args.multi_step
     self.discount = args.discount
+    self.progress_reward = args.progress_reward
     self.trial_reward = args.trial_reward
 
     self.online_net = DQN(args, self.action_space).to(device=args.device)
@@ -103,7 +104,11 @@ class Agent():
       pns_a = pns[range(self.batch_size), argmax_indices_masked]  # Double-Q probabilities p(s_t+n, argmax_a[(z, p(s_t+n, a; θonline))]; θtarget)
 
       # Compute Tz (Bellman operator T applied to z)
-      Tz = returns.unsqueeze(1) + nonterminals * (self.discount ** self.n) * self.support.unsqueeze(0)  # Tz = R^n + (γ^n)z (accounting for terminal states)
+      if self.progress_reward:
+        Tz = returns.unsqueeze(1)
+      else:
+        Tz = returns.unsqueeze(1) + nonterminals * (self.discount ** self.n) * self.support.unsqueeze(0)  # Tz = R^n + (γ^n)z (accounting for terminal states)
+
       Tz = Tz.clamp(min=self.Vmin, max=self.Vmax)  # Clamp between supported values
       # Compute L2 projection of Tz onto fixed support z
       b = (Tz - self.Vmin) / self.delta_z  # b = (Tz - Vmin) / Δz
