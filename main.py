@@ -198,6 +198,7 @@ else:
     else:
       next_state, reward, done = env.step(action)  # Step
 
+    # TODO doesn't work if we don't use action mask
     # update num turns (trial reward)
     if action != 2:
       num_turns += 1

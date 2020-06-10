@@ -74,6 +74,9 @@ class ReplayMemory():
     self.priority_exponent = args.priority_exponent
     self.t = 0  # Internal episode timestep counter
     self.transitions = SegmentTree(capacity)  # Store transitions in a wrap-around cyclic buffer within a sum tree for querying priorities
+    self.progress_reward = args.progress_reward
+    # TODO change names
+    self.spot_trial_reward = args.trial_reward
 
   # Adds state, allowed actions, and selected action at time t, reward and terminal at time t + 1
   def append(self, state, action, reward, terminal, allowed_actions):
@@ -117,7 +120,13 @@ class ReplayMemory():
     # Discrete action to be used as index
     action = torch.tensor([transition[self.history - 1].action], dtype=torch.int64, device=self.device)
     # Calculate truncated n-step discounted return R^n = Σ_k=0->n-1 (γ^k)R_t+k+1 (note that invalid nth next states have reward 0)
-    R = torch.tensor([sum(self.discount ** n * transition[self.history + n - 1].reward for n in range(self.n))], dtype=torch.float32, device=self.device)
+    #TODO add cases here - this is why reward schedule doesn't work
+    if self.progress_reward:
+      R = torch.tensor([transition[n].reward for n in range(self.n)], dtype=torch.float32, device=self.device)
+    elif self.spot_trial_reward:
+      raise NotImplementedError()
+    else:
+      R = torch.tensor([sum(self.discount ** n * transition[self.history + n - 1].reward for n in range(self.n))], dtype=torch.float32, device=self.device)
     # Mask for non-terminal nth next states
     nonterminal = torch.tensor([transition[self.history + self.n - 1].nonterminal], dtype=torch.float32, device=self.device)
 
