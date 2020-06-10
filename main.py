@@ -193,19 +193,6 @@ else:
 
     next_state, reward, done = env.step(action)  # Step
 
-    # TODO doesn't work if we don't use action mask
-    # update num turns (trial reward)
-    if action != 2:
-      num_turns += 1
-    else:
-      num_turns = 0
-
-    # apply trial reward, if we have turned 3 or more times consecutively, set reward to 0
-    # TODO set reward of initial turn to 0, not final turn
-    if args.trial_reward:
-      if num_turns >= 3:
-        reward = 0
-
     if args.reward_clip > 0:
       reward = max(min(reward, args.reward_clip), -args.reward_clip)  # Clip rewards
 

@@ -1,9 +1,11 @@
 from gym_minigrid.envs.crossing import LavaCrossingEnv
+from gym_minigrid.envs.empty import EmptyEnv5x5
 import numpy as np
 from queue import Queue
 import cv2
 
-class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
+# class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
+class LavaCrossingSpotRewardEnv(EmptyEnv5x5):
   def __init__(self):
     super().__init__()
     self.training = True
@@ -56,7 +58,7 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
     unreachable_inds = (self.reward_grid == 1)
     self.reward_grid = np.max(self.reward_grid) - self.reward_grid
     # normalize to be from 0 to 1
-    self.reward_grid = self.reward_grid / np.max(self.reward_grid)
+    self.reward_grid = self.reward_grid / np.sum(self.reward_grid)
     # set unreachable spots to have -1 reward
     self.reward_grid[unreachable_inds] = -1
 

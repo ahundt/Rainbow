@@ -104,7 +104,8 @@ class Agent():
       pns_a = pns[range(self.batch_size), argmax_indices_masked]  # Double-Q probabilities p(s_t+n, argmax_a[(z, p(s_t+n, a; θonline))]; θtarget)
 
       # Compute Tz (Bellman operator T applied to z)
-      if self.progress_reward:
+      # if self.progress_reward:
+      if False:
         Tz = returns.unsqueeze(1)
       else:
         Tz = returns.unsqueeze(1) + nonterminals * (self.discount ** self.n) * self.support.unsqueeze(0)  # Tz = R^n + (γ^n)z (accounting for terminal states)
