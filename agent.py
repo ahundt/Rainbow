@@ -109,6 +109,7 @@ class Agent():
       else:
         Tz = returns.unsqueeze(1) + nonterminals * (self.discount ** self.n) * self.support.unsqueeze(0)  # Tz = R^n + (γ^n)z (accounting for terminal states)
 
+      print(Tz.size())
       Tz = Tz.clamp(min=self.Vmin, max=self.Vmax)  # Clamp between supported values
       # Compute L2 projection of Tz onto fixed support z
       b = (Tz - self.Vmin) / self.delta_z  # b = (Tz - Vmin) / Δz

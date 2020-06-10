@@ -163,7 +163,7 @@ class MinigridEnv():
   def step(self, action, agent_pos=None):
     # figure out actions
     if self.progress_reward:
-      _, reward, done = self.env.step(action, self.agent_pos)
+      _, reward, done = self.env.step(action, self.agent_pos())
     else:
       _, reward, done, _ = self.env.step(action)
 
