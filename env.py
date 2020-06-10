@@ -185,7 +185,7 @@ class MinigridEnv():
     return self.actions
 
   def agent_pos(self):
-      return self.env.agent_pos
+    return self.env.agent_pos
 
   def render(self):
     state = self._get_state().cpu().numpy()[0]
