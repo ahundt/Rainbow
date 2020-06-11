@@ -27,7 +27,7 @@
             "pythonPath": "/usr/bin/python3",
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
-            "args": [ "--disable-cuda", "--minigrid", "--target-update", "2000", "--T-max", "1000000", "--learn-start", "2000", "--memory-capacity", "1000000", "--replay-frequency", "1", "--multi-step", "20", "--architecture", "data-efficient", "--hidden-size", "32", "--learning-rate", "0.0001", "--evaluation-interval", "1000", "--checkpoint-interval", "1000", "--env", "MiniGrid-Empty-5x5-v0", "--id", "empty-mask-spot-q-debug", "--batch-size", "8", "--action-mask", "--spot-q", "--render"]
+            "args": [ "--disable-cuda", "--minigrid", "--target-update", "2000", "--T-max", "1000000", "--learn-start", "5000", "--memory-capacity", "1000000", "--replay-frequency", "1", "--multi-step", "20", "--architecture", "data-efficient", "--hidden-size", "32", "--learning-rate", "0.0001", "--evaluation-interval", "1000", "--checkpoint-interval", "1000", "--env", "MiniGrid-Empty-5x5-v0", "--id", "empty-mask-spot-q-debug", "--batch-size", "8", "--action-mask", "--spot-q", "--render", "--discount", "0.9"]
             // "args": [ "--disable-cuda", "--minigrid", "--target-update", "2000", "--T-max", "1000000", "--learn-start", "2000", "--memory-capacity", "1000000", "--replay-frequency", "1", "--multi-step", "20", "--architecture", "data-efficient", "--hidden-size", "32", "--learning-rate", "0.0001", "--evaluation-interval", "10000", "--memory", "results/empty-spot-q-debug/memory", "--checkpoint-interval", "1000", "--env", "MiniGrid-Empty-5x5-v0", "--id", "empty-mask-spot-q-debug", "--batch-size", "8", "--action-mask", "--spot-q", "--render"]
         },
         {
@@ -37,7 +37,17 @@
             "pythonPath": "/usr/bin/python3",
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
-            "args": [ "--disable-cuda", "--minigrid", "--target-update", "2000", "--T-max", "1000000", "--learn-start", "2000", "--memory-capacity", "1000000", "--replay-frequency", "1", "--multi-step", "20", "--architecture", "data-efficient", "--hidden-size", "32", "--learning-rate", "0.0001", "--evaluation-interval", "1000", "--checkpoint-interval", "1000", "--env", "MiniGrid-Empty-5x5-v0", "--id", "empty-mask-spot-q-debug", "--batch-size", "8", "--action-mask", "--spot-q", "--render", "--progress-reward"]
+            "args": [ "--disable-cuda", "--minigrid", "--target-update", "2000", "--T-max", "1000000", "--learn-start", "5000", "--memory-capacity", "1000000", "--replay-frequency", "1", "--multi-step", "6", "--architecture", "data-efficient", "--hidden-size", "256", "--learning-rate", "0.0001", "--evaluation-interval", "1000", "--checkpoint-interval", "1000", "--env", "MiniGrid-Empty-5x5-v0", "--id", "empty-mask-spot-q-progress-debug", "--batch-size", "8", "--action-mask", "--spot-q", "--render", "--progress-reward", "--discount", "0.9"]
+            // "args": [ "--disable-cuda", "--minigrid", "--target-update", "2000", "--T-max", "1000000", "--learn-start", "2000", "--memory-capacity", "1000000", "--replay-frequency", "1", "--multi-step", "20", "--architecture", "data-efficient", "--hidden-size", "32", "--learning-rate", "0.0001", "--evaluation-interval", "10000", "--memory", "results/empty-spot-q-debug/memory", "--checkpoint-interval", "1000", "--env", "MiniGrid-Empty-5x5-v0", "--id", "empty-mask-spot-q-debug", "--batch-size", "8", "--action-mask", "--spot-q", "--render"]
+        },
+        {
+            "name": "main.py: progress lava gridworld",
+            "type": "python",
+            "request": "launch",
+            "pythonPath": "/usr/bin/python3",
+            "program": "${workspaceFolder}/main.py",
+            "console": "integratedTerminal",
+            "args": [ "--disable-cuda", "--minigrid", "--target-update", "2000", "--T-max", "1000000", "--learn-start", "20000", "--memory-capacity", "1000000", "--replay-frequency", "1", "--multi-step", "20", "--architecture", "data-efficient", "--hidden-size", "256", "--learning-rate", "0.0001", "--evaluation-interval", "1000", "--checkpoint-interval", "10000", "--env", "MiniGrid-Empty-5x5-v0", "--id", "lava-large-env-mask-spot-q-progress", "--memory", "results/lava-large-env-mask-spot-q-progress", "--batch-size", "128", "--action-mask", "--spot-q", "--render", "--progress-reward", "--discount", "0.9"]
             // "args": [ "--disable-cuda", "--minigrid", "--target-update", "2000", "--T-max", "1000000", "--learn-start", "2000", "--memory-capacity", "1000000", "--replay-frequency", "1", "--multi-step", "20", "--architecture", "data-efficient", "--hidden-size", "32", "--learning-rate", "0.0001", "--evaluation-interval", "10000", "--memory", "results/empty-spot-q-debug/memory", "--checkpoint-interval", "1000", "--env", "MiniGrid-Empty-5x5-v0", "--id", "empty-mask-spot-q-debug", "--batch-size", "8", "--action-mask", "--spot-q", "--render"]
         },
     ]
