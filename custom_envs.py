@@ -4,8 +4,8 @@ import numpy as np
 from queue import Queue
 import cv2
 
-# class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
-class LavaCrossingSpotRewardEnv(EmptyEnv5x5):
+class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
+#class LavaCrossingSpotRewardEnv(EmptyEnv5x5):
   def __init__(self):
     super().__init__()
     self.training = True
