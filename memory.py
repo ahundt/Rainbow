@@ -43,10 +43,10 @@ class SegmentTree():
   # Searches for the location of a value in sum tree
   def _retrieve(self, index, value):
     left, right = 2 * index + 1, 2 * index + 2
-    while right < len(self.sum_tree):
+    while left < len(self.sum_tree):
       if value <= self.sum_tree[left]:
         index = left
-      else:
+      elif right < len(self.sum_tree):
         index = right
         value = value - self.sum_tree[left]
       left, right = 2 * index + 1, 2 * index + 2
