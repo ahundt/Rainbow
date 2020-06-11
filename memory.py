@@ -43,12 +43,14 @@ class SegmentTree():
   # Searches for the location of a value in sum tree
   def _retrieve(self, index, value):
     left, right = 2 * index + 1, 2 * index + 2
-    if left >= len(self.sum_tree):
-      return index
-    elif value <= self.sum_tree[left]:
-      return self._retrieve(left, value)
-    else:
-      return self._retrieve(right, value - self.sum_tree[left])
+    while left < len(self.sum_tree):
+      if value <= self.sum_tree[left]:
+        index = left
+      elif right < len(self.sum_tree):
+        index = right
+        value = value - self.sum_tree[left]
+      left, right = 2 * index + 1, 2 * index + 2
+    return index
 
   # Searches for a value in sum tree and returns value, data index and tree index
   def find(self, value):
@@ -103,9 +105,13 @@ class ReplayMemory():
   # Returns a valid sample from a segment
   def _get_sample_from_segment(self, segment, i):
     valid = False
+    invalid_count = 0
     while not valid:
       sample = np.random.uniform(i * segment, (i + 1) * segment)  # Uniformly sample an element from within a segment
       prob, idx, tree_idx = self.transitions.find(sample)  # Retrieve sample from tree with un-normalised probability
+      invalid_count += 1
+      if invalid_count >= 10:
+        print('_get_sample_from_segment() invalid count bug: ' + str(invalid_count))
       # Resample if transition straddled current index or probablity 0
       if (self.transitions.index - idx) % self.capacity > self.n and (idx - self.transitions.index) % self.capacity >= self.history and prob != 0:
         valid = True  # Note that conditions are valid but extra conservative around buffer index 0
