@@ -12,6 +12,7 @@ class LavaCrossingSpotRewardEnv(EmptyEnv5x5):
     self.reward_grid = None
     self.goal_pos = (0, 0)
     self.reset()
+    self.num_turns = 0
 
   def _gen_reward(self):
     # generate the reward values in the grid (use the numpy array reward_grid)
@@ -58,7 +59,7 @@ class LavaCrossingSpotRewardEnv(EmptyEnv5x5):
     unreachable_inds = (self.reward_grid == 1)
     self.reward_grid = np.max(self.reward_grid) - self.reward_grid
     # normalize to be from 0 to 1
-    self.reward_grid = self.reward_grid / np.sum(self.reward_grid)
+    self.reward_grid = self.reward_grid / np.max(self.reward_grid)
     # set unreachable spots to have -1 reward
     self.reward_grid[unreachable_inds] = -1
 
@@ -96,6 +97,7 @@ class LavaCrossingSpotRewardEnv(EmptyEnv5x5):
       return super()._reward()
 
   def step(self, action, last_pos=None):
+    # print('num_turns: ' + str(self.num_turns))
     if self.training:
       if last_pos is None:
         raise ValueError("Must provide last position of agent to step function \
@@ -105,12 +107,18 @@ class LavaCrossingSpotRewardEnv(EmptyEnv5x5):
 
       # if we have finished, the step method has already called the reward method
       if not done:
+        self.num_turns = self.num_turns + 1 if action == 0 or action == 1 else 0
         reward = self._reward(action, last_pos)
+        if self.num_turns > 2:
+          reward = 0.0
+          done = True
+          self.num_turns = 0
+        elif self.num_turns == 0 and reward == 0.0:
+          done = True
 
     else:
       # run the step method of the superclass
       next_state, reward, done, _ = super().step(action)
-
     return next_state, reward, done
 
   def eval(self):
