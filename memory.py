@@ -111,13 +111,14 @@ class ReplayMemory():
       prob, idx, tree_idx = self.transitions.find(sample)  # Retrieve sample from tree with un-normalised probability
       invalid_count += 1
       if invalid_count >= 10:
-        print('_get_sample_from_segment() invalid count bug: ' + str(invalid_count))
-        print("index", self.transitions.index, "idx", idx, "capacity", self.capacity,
-          "multi-step", self.n, "history", self.history)
-        print((self.transitions.index - idx) % self.capacity)
-        print((idx - self.transitions.index) % self.capacity)
-        print(prob)
-        input()
+        #print('_get_sample_from_segment() invalid count bug: ' + str(invalid_count))
+        #print("index", self.transitions.index, "idx", idx, "capacity", self.capacity,
+        #  "multi-step", self.n, "history", self.history)
+        #print((self.transitions.index - idx) % self.capacity)
+        #print((idx - self.transitions.index) % self.capacity)
+        #print(prob)
+        #input()
+        pass
       # Resample if transition straddled current index or probablity 0
       if (self.transitions.index - idx) % self.capacity > self.n and (idx - self.transitions.index) % self.capacity >= self.history and prob != 0:
         valid = True  # Note that conditions are valid but extra conservative around buffer index 0

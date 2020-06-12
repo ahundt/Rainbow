@@ -82,8 +82,6 @@ class Agent():
 
     # Calculate current state probabilities (online network noise already sampled)
     log_ps = self.online_net(states, log=True)  # Log probabilities log p(s_t, ·; θonline)
-    print(log_ps.size())
-    print(range(self.batch_size))
     log_ps_a = log_ps[range(self.batch_size), actions]  # log p(s_t, a_t; θonline)
 
     with torch.no_grad():
@@ -106,9 +104,8 @@ class Agent():
       pns_a = pns[range(self.batch_size), argmax_indices_masked]  # Double-Q probabilities p(s_t+n, argmax_a[(z, p(s_t+n, a; θonline))]; θtarget)
 
       # Compute Tz (Bellman operator T applied to z)
-      # if self.progress_reward:
-      if False:
-        Tz = returns.unsqueeze(1)
+      if self.progress_reward:
+        Tz = returns.unsqueeze(1) + torch.zeros_like(self.support.unsqueeze(0))
       else:
         Tz = returns.unsqueeze(1) + nonterminals * (self.discount ** self.n) * self.support.unsqueeze(0)  # Tz = R^n + (γ^n)z (accounting for terminal states)
 
