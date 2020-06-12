@@ -31,7 +31,7 @@ class Agent():
             state_dict[new_key] = state_dict[old_key]  # Re-map state dict for old pretrained models
             del state_dict[old_key]  # Delete old keys for strict load_state_dict
         self.online_net.load_state_dict(state_dict)
-        print("Loading pretrained model: " + args.model)
+ torch.zeros_like(self.support.unsqueeze(0))       print("Loading pretrained model: " + args.model)
       else:  # Raise error if incorrect model path provided
         raise FileNotFoundError(args.model)
 
@@ -105,7 +105,7 @@ class Agent():
 
       # Compute Tz (Bellman operator T applied to z)
       if self.progress_reward:
-        Tz = returns.unsqueeze(1) + torch.zeros_like(self.support.unsqueeze(0))
+        Tz = returns.unsqueeze(1) + nonterminals * self.discount * self.support.unsqueeze(0) # Tz = R + γz (accounting for terminal states)
       else:
         Tz = returns.unsqueeze(1) + nonterminals * (self.discount ** self.n) * self.support.unsqueeze(0)  # Tz = R^n + (γ^n)z (accounting for terminal states)
 
