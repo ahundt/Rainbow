@@ -31,7 +31,7 @@ class SegmentTree():
   def update(self, index, value):
     self.sum_tree[index] = value  # Set new value
     self._propagate(index, value)  # Propagate value
-    self.max = max(value, self.max)
+    self.max = max(value, self.max) # update max priority
 
   def append(self, data, value):
     self.data[self.index] = data  # Store data in underlying data structure
@@ -112,6 +112,12 @@ class ReplayMemory():
       invalid_count += 1
       if invalid_count >= 10:
         print('_get_sample_from_segment() invalid count bug: ' + str(invalid_count))
+        print("index", self.transitions.index, "idx", idx, "capacity", self.capacity,
+          "multi-step", self.n, "history", self.history)
+        print((self.transitions.index - idx) % self.capacity)
+        print((idx - self.transitions.index) % self.capacity)
+        print(prob)
+        input()
       # Resample if transition straddled current index or probablity 0
       if (self.transitions.index - idx) % self.capacity > self.n and (idx - self.transitions.index) % self.capacity >= self.history and prob != 0:
         valid = True  # Note that conditions are valid but extra conservative around buffer index 0
@@ -128,12 +134,12 @@ class ReplayMemory():
     # Calculate truncated n-step discounted return R^n = Σ_k=0->n-1 (γ^k)R_t+k+1 (note that invalid nth next states have reward 0)
     R = torch.tensor([sum(self.discount ** n * transition[self.history + n - 1].reward for n in range(self.n))], dtype=torch.float32, device=self.device)
     #TODO add cases here - this is why reward schedule doesn't work
-    # if self.progress_reward:
-    #   R = torch.tensor([transition[self.history-1].reward], dtype=torch.float32, device=self.device)
-    # elif self.spot_trial_reward:
-    #   raise NotImplementedError()
-    # else:
-    #   R = torch.tensor([sum(self.discount ** n * transition[self.history + n - 1].reward for n in range(self.n))], dtype=torch.float32, device=self.device)
+    if self.progress_reward:
+       R = torch.tensor([transition[self.history-1].reward], dtype=torch.float32, device=self.device)
+    elif self.spot_trial_reward:
+       raise NotImplementedError()
+    else:
+       R = torch.tensor([sum(self.discount ** n * transition[self.history + n - 1].reward for n in range(self.n))], dtype=torch.float32, device=self.device)
 
     # Mask for non-terminal nth next states
     nonterminal = torch.tensor([transition[self.history + self.n - 1].nonterminal], dtype=torch.float32, device=self.device)
