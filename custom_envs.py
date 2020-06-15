@@ -53,10 +53,9 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
         # set the current neighbor as processed
         processed[r_n, c_n] = 1
 
-    # finally, invert the values in the reward grid to get P
-    # use 2 in the numerator so that reaching the goal has reward of 1
     # first need to store lava/wall spots so we can set those to have 0 reward
     unreachable_inds = (self.reward_grid == 1)
+    # invert values (high value = closer to goal)
     self.reward_grid = np.max(self.reward_grid) - self.reward_grid
     # normalize to be from 0 to 1
     self.reward_grid = self.reward_grid / np.max(self.reward_grid)
@@ -64,10 +63,6 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
     self.reward_grid[unreachable_inds] = -1
 
   def _reward(self, action=None, last_pos=None):
-    # hacky solution - ideally we raise an exception if last_pos isn't provided
-    # at train time, however, this reward function is called when calling the
-    # step method of the base class, and we cannot pass last_pos to that step
-    # method
     if self.base_reward_penalty:
       # set weighting factor, this way multiply reward on turns by 0.75
       base_reward = np.ones(len(self.actions)) * 0.75
@@ -76,6 +71,10 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
     else:
       base_reward = np.ones(len(self.actions))
 
+    # hacky solution - ideally we raise an exception if last_pos isn't provided
+    # at train time, however, this reward function is called when calling the
+    # step method of the base class, and we cannot pass last_pos to that step
+    # method
     if self.training:
       if last_pos is not None:
         # here, we use the spot reward
@@ -118,7 +117,7 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
           reward = 0.0
           done = True
           self.num_turns = 0
-        elif self.num_turns == 0 and reward == 0.0:
+        elif self.num_turns == 0 and reward == 0:
           done = True
 
     else:
