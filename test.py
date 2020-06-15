@@ -32,6 +32,9 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
         if not args.minigrid:
           raise NotImplementedError("Action mask only implemented for minigrid")
         allowed_actions = env.get_allowed_mask()
+      
+      else:
+        allowed_actions = np.ones(env.action_space())
 
       else:
         allowed_actions = np.ones(env.action_space())

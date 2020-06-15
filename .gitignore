@@ -92,6 +92,6 @@ ENV/
 # Saved models
 *.pth
 # Plots
-*.html
+results/**/*.html
 # memory
 **/memory

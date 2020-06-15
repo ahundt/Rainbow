@@ -29,6 +29,7 @@ parser.add_argument('--env', type=str, default='MiniGrid-Empty-8x8-v0', help='Mi
 parser.add_argument('--spot-q', action='store_true', help='use spot-q learning algorithm')
 parser.add_argument('--action-mask', action='store_true', help='use predictive action masking')
 parser.add_argument('--progress-reward', action='store_true', help='use progress reward')
+parser.add_argument('--action-reward-penalty', action='store_true', help='penalize certain actions in progress reward')
 parser.add_argument('--trial-reward', action='store_true', help='use spot trial reward')
 parser.add_argument('--game', type=str, default='space_invaders', choices=atari_py.list_games(), help='ATARI game')
 parser.add_argument('--T-max', type=int, default=int(50e6), metavar='STEPS', help='Number of training steps (4x number of frames)')
