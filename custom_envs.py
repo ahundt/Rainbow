@@ -5,13 +5,14 @@ from queue import Queue
 import cv2
 
 class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
-  def __init__(self):
+  def __init__(self, base_reward_penalty):
     super().__init__()
     self.training = True
     self.reward_grid = None
     self.goal_pos = (0, 0)
     self.reset()
     self.num_turns = 0
+    self.base_reward_penalty = base_reward_penalty
 
   def _gen_reward(self):
     # generate the reward values in the grid (use the numpy array reward_grid)
@@ -67,9 +68,14 @@ class LavaCrossingSpotRewardEnv(LavaCrossingEnv):
     # at train time, however, this reward function is called when calling the
     # step method of the base class, and we cannot pass last_pos to that step
     # method
-    # TODO set weighting factor, this way multiply reward on turns by 0.75
-    base_reward = np.ones(3) * 0.75
-    base_reward[-1] = 1
+    if self.base_reward_penalty:
+      # set weighting factor, this way multiply reward on turns by 0.75
+      base_reward = np.ones(len(self.actions)) * 0.75
+      # moving forward carries no base reward penalty
+      base_reward[2] = 1
+    else:
+      base_reward = np.ones(len(self.actions))
+
     if self.training:
       if last_pos is not None:
         # here, we use the spot reward
