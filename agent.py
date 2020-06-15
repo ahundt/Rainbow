@@ -31,7 +31,7 @@ class Agent():
             state_dict[new_key] = state_dict[old_key]  # Re-map state dict for old pretrained models
             del state_dict[old_key]  # Delete old keys for strict load_state_dict
         self.online_net.load_state_dict(state_dict)
- torch.zeros_like(self.support.unsqueeze(0))       print("Loading pretrained model: " + args.model)
+        print("Loading pretrained model: " + args.model)
       else:  # Raise error if incorrect model path provided
         raise FileNotFoundError(args.model)
 
