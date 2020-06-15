@@ -52,7 +52,7 @@ class Agent():
   # Acts based on single state (no batch)
   def act(self, state, allowed_mask):
     with torch.no_grad():
-      action_eval = torch.flatten((self.online_net(state.unsqueeze(0)) * self.support).sum(2)).numpy()
+      action_eval = torch.flatten((self.online_net(state.unsqueeze(0)) * self.support).sum(2)).cpu().numpy()
 
       # choose maximum value action that is in the allowed mask
 
