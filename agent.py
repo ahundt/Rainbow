@@ -90,7 +90,7 @@ class Agent():
       dns = self.support.expand_as(pns) * pns  # Distribution d_t+n = (z, p(s_t+n, ·; θonline))
 
       # Action Masking - mask invalid actions
-      argmax_indices_masked = dns.sum(2).numpy()
+      argmax_indices_masked = dns.sum(2).cpu().numpy()
 
       # make sure all values are nonnegative
       argmax_indices_masked = argmax_indices_masked - min(np.min(argmax_indices_masked), 0)
