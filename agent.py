@@ -8,7 +8,6 @@ from torch.autograd import Variable
 
 from model import DQN
 
-
 class Agent():
   def __init__(self, args, env):
     self.action_space = env.action_space()
@@ -20,6 +19,8 @@ class Agent():
     self.batch_size = args.batch_size
     self.n = args.multi_step
     self.discount = args.discount
+    self.progress_reward = args.progress_reward
+    self.trial_reward = args.trial_reward
 
     self.online_net = DQN(args, self.action_space).to(device=args.device)
     if args.model:  # Load pretrained model if provided
@@ -88,11 +89,11 @@ class Agent():
       pns = self.online_net(next_states)  # Probabilities p(s_t+n, ·; θonline)
       dns = self.support.expand_as(pns) * pns  # Distribution d_t+n = (z, p(s_t+n, ·; θonline))
 
-      # Action Masking - mask all moving forward action values where forward is False to 0
+      # Action Masking - mask invalid actions
       argmax_indices_masked = dns.sum(2).numpy()
 
       # make sure all values are nonnegative
-      allowed_actions = allowed_actions - min(np.min(allowed_actions), 0)
+      argmax_indices_masked = argmax_indices_masked - min(np.min(argmax_indices_masked), 0)
       argmax_indices_masked = np.multiply(argmax_indices_masked, allowed_actions)
 
       # pick best remaining action
@@ -103,7 +104,11 @@ class Agent():
       pns_a = pns[range(self.batch_size), argmax_indices_masked]  # Double-Q probabilities p(s_t+n, argmax_a[(z, p(s_t+n, a; θonline))]; θtarget)
 
       # Compute Tz (Bellman operator T applied to z)
-      Tz = returns.unsqueeze(1) + nonterminals * (self.discount ** self.n) * self.support.unsqueeze(0)  # Tz = R^n + (γ^n)z (accounting for terminal states)
+      if self.progress_reward:
+        Tz = returns.unsqueeze(1) + nonterminals * self.discount * self.support.unsqueeze(0) # Tz = R + γz (accounting for terminal states)
+      else:
+        Tz = returns.unsqueeze(1) + nonterminals * (self.discount ** self.n) * self.support.unsqueeze(0)  # Tz = R^n + (γ^n)z (accounting for terminal states)
+
       Tz = Tz.clamp(min=self.Vmin, max=self.Vmax)  # Clamp between supported values
       # Compute L2 projection of Tz onto fixed support z
       b = (Tz - self.Vmin) / self.delta_z  # b = (Tz - Vmin) / Δz

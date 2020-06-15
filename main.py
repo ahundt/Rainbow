@@ -28,6 +28,8 @@ parser.add_argument('--minigrid', action='store_true',  help='Use Minigrid Env, 
 parser.add_argument('--env', type=str, default='MiniGrid-Empty-8x8-v0', help='MiniGrid Env, see  see https://github.com/maximecb/gym-minigrid for options. Example lava world: --minigrid --env MiniGrid-LavaCrossingS9N3-v0')
 parser.add_argument('--spot-q', action='store_true', help='use spot-q learning algorithm')
 parser.add_argument('--action-mask', action='store_true', help='use predictive action masking')
+parser.add_argument('--progress-reward', action='store_true', help='use progress reward')
+parser.add_argument('--trial-reward', action='store_true', help='use spot trial reward')
 parser.add_argument('--game', type=str, default='space_invaders', choices=atari_py.list_games(), help='ATARI game')
 parser.add_argument('--T-max', type=int, default=int(50e6), metavar='STEPS', help='Number of training steps (4x number of frames)')
 parser.add_argument('--max-episode-length', type=int, default=int(108e3), metavar='LENGTH', help='Max episode length in game frames (0 to disable)')
@@ -107,10 +109,10 @@ def save_memory(memory, memory_path, disable_bzip):
 
 # Environment
 if not args.minigrid:
-    env = Env(args)
+  env = Env(args)
 else:
-    env = MinigridEnv(args)
-env.train()
+  env = MinigridEnv(args)
+
 action_space = env.action_space()
 
 # Agent
@@ -130,13 +132,16 @@ else:
 
 priority_weight_increase = (1 - args.priority_weight) / (args.T_max - args.learn_start)
 
-
 # Construct validation memory
 val_mem = ReplayMemory(args, args.evaluation_size)
 T, done = 0, True
+
+# set env to eval mode
+env.eval()
 while T < args.evaluation_size:
   if done:
     state, done = env.reset(), False
+    env.eval()
 
   # if using an action mask, get the mask of allowed actions
   if args.action_mask:
@@ -159,12 +164,21 @@ if args.evaluate:
   avg_reward, avg_Q = test(args, 0, dqn, val_mem, metrics, results_dir, evaluate=True)  # Test
   print('Avg. reward: ' + str(avg_reward) + ' | Avg. Q: ' + str(avg_Q))
 else:
+  # set env to training mode
+  env.train()
+
   # Training loop
   dqn.train()
   T, done = 0, True
+
+  # keep track of consecutive turns (trial reward)
+  num_turns = 0
+
   for T in trange(1, args.T_max + 1):
     if done:
       state, done = env.reset(), False
+      num_turns = 0
+      env.train()
 
     if T % args.replay_frequency == 0:
       dqn.reset_noise()  # Draw a new set of noisy weights
@@ -176,9 +190,12 @@ else:
       allowed_mask = np.ones(env.action_space())
 
     action = dqn.act(state, allowed_mask)  # Choose an action greedily (with noisy weights)
+
     next_state, reward, done = env.step(action)  # Step
+
     if args.reward_clip > 0:
       reward = max(min(reward, args.reward_clip), -args.reward_clip)  # Clip rewards
+
     mem.append(state, action, reward, done, allowed_mask)  # Append transition to memory
 
     # Train and test
@@ -190,6 +207,7 @@ else:
 
       if T % args.evaluation_interval == 0:
         dqn.eval()  # Set DQN (online network) to evaluation mode
+
         avg_reward, avg_Q = test(args, T, dqn, val_mem, metrics, results_dir)  # Test
         log('T = ' + str(T) + ' / ' + str(args.T_max) + ' | Avg. reward: ' + str(avg_reward) + ' | Avg. Q: ' + str(avg_Q))
         dqn.train()  # Set DQN (online network) back to training mode
