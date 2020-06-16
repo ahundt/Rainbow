@@ -36,9 +36,6 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
       else:
         allowed_actions = np.ones(env.action_space())
 
-      else:
-        allowed_actions = np.ones(env.action_space())
-
       action = dqn.act_e_greedy(state, allowed_actions)  # Choose an action ε-greedily
       state, reward, done = env.step(action)  # Step
       reward_sum += reward

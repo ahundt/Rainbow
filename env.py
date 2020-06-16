@@ -104,7 +104,7 @@ class Env():
 class MinigridEnv():
   def __init__(self, args):
     if args.progress_reward:
-      self.env = LavaCrossingSpotRewardEnv()
+      self.env = LavaCrossingSpotRewardEnv(args.action_reward_penalty)
       self.progress_reward = True
     else:
       self.env = gym.make(args.env).unwrapped

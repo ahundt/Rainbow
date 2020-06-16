@@ -49,3 +49,14 @@ Modify line 99 of `custom_envs.py` to `return 2 * self.reward_grid[c, r]`
 
 ### Code Modifications
 Modify line 108 of `agent.py` to `Tz = returns.unsqueeze(1) + torch.zeros_like(self.support.unsqueeze(0))`
+
+## Run 6: `sum_norm_high_goal_reward.html`
+### Command
+`python main.py --minigrid --target-update 2000 --T-max 1000000 \
+--learn-start 20000 --memory-capacity 1000000 --replay-frequency 1 --multi-step 1 \
+--architecture data-efficient --hidden-size 256 --learning-rate 0.0001 \
+--evaluation-interval 5000 --env MiniGrid-LavaCrossingS9N1-v0 --batch-size 128 \
+--action-mask --spot-q --progress-reward --id lava-large-env-reward-sum-norm-high-goal`
+
+### Commit ID
+`692183da2af7ab352d6f72a9b1d2539a18ddb2e9`
