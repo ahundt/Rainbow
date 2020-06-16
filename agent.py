@@ -125,7 +125,7 @@ class Agent():
 
       if spotq:
         # get original chosen actions (for spot q loss)
-        argmax_indices_ns = dns.sum(2).argmax(1).numpy()
+        argmax_indices_ns = dns.sum(2).argmax(1).cpu().numpy()
 
         extra_term_inds = (argmax_indices_masked != argmax_indices_ns)
         pns_a_spotq = pns[range(self.batch_size), argmax_indices_masked]
