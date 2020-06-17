@@ -93,5 +93,7 @@ ENV/
 *.pth
 # Plots
 results/**/*.html
+# metrics
+results/**/*.csv
 # memory
 **/memory
