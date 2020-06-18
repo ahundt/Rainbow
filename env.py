@@ -174,7 +174,8 @@ class MinigridEnv():
       _, reward, done, _ = self.env.step(action)
 
     if not self.training:
-      if done:
+      # assign action efficiency reward if we successfully reached the goal, otherwise, reward is 0
+      if done and reward != 0:
         reward = self.optimal_steps / self.env.step_count
       else:
         reward = 0
