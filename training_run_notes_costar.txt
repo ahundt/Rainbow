@@ -42,23 +42,37 @@ SPOT-Q + rprogress training run
 
 
 ± export CUDA_VISIBLE_DEVICES="" && taskset 0x000FFFFF python3 main.py --minigrid --target-update 2000 --T-max 1000000 --learn-start 20000 --memory-capacity 1000000 \
---replay-frequency 1 --multi-step 20 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 \
+--replay-frequency 1 --multi-step 1 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 \
 --evaluation-interval 10000 --memory ./results/lava-large-env-action-mask-spot-q-progress-0/memory.pkl.bz2 --checkpoint-interval 10000 \
 --env MiniGrid-LavaCrossingS9N1-v0 --id lava-large-env-action-mask-spot-q-progress-0 --batch-size 128 --action-mask --spot-q --progress-reward
 
 
 export CUDA_VISIBLE_DEVICES="0" && taskset 0x000FFFFF python3 main.py --minigrid --target-update 2000 --T-max 1000000 --learn-start 20000 --memory-capacity 1000000 \
---replay-frequency 1 --multi-step 20 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 \
+--replay-frequency 1 --multi-step 1 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 \
 --evaluation-interval 10000 --memory ./results/lava-large-env-action-mask-spot-q-progress-2020-06-16-1254/memory.pkl.bz2 --checkpoint-interval 10000 \
 --env MiniGrid-LavaCrossingS9N1-v0 --id lava-large-env-action-mask-spot-q-progress-2020-06-16-1254 --batch-size 128 --action-mask --spot-q --progress-reward
-Commit: 4fa1375c9991134f887dd5e0c83ab2870c957a34
+Commit: 3973de16426e9c3078b69013a033e0e4fea31081
 
 
 export CUDA_VISIBLE_DEVICES="1" && taskset 0x000FFFFF python3 main.py --minigrid --target-update 2000 --T-max 1000000 --learn-start 20000 --memory-capacity 1000000 \
---replay-frequency 1 --multi-step 20 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 \
+--replay-frequency 1 --multi-step 1 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 \
 --evaluation-interval 10000 --memory ./results/lava-large-env-action-mask-spot-q-progress-2020-06-16-1255/memory.pkl.bz2 --checkpoint-interval 10000 \
---env MiniGrid-LavaCrossingS9N1-v0 --id lava-large-env-action-mask-spot-q-progress-2020-06-16-1255 --batch-size 128 --action-mask --spot-q --progress-reward
-Commit: 4fa1375c9991134f887dd5e0c83ab2870c957a34
+--env MiniGrid-LavaCrossingS9N1-v0 --id lava-large-env-action-mask-spot-q-progress-2020-06-16-1255 --batch-size 128 --action-mask --spot-q --progress-reward --seed 1234
+Commit: 3973de16426e9c3078b69013a033e0e4fea31081
+
+
+export CUDA_VISIBLE_DEVICES="0" && taskset 0x000FFFFF python3 main.py --minigrid --target-update 2000 --T-max 1000000 --learn-start 20000 --memory-capacity 1000000 \
+--replay-frequency 1 --multi-step 1 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 \
+--evaluation-interval 5000 --memory ./results/lava-large-env-action-mask-spot-q-progress-2020-06-16-1254/memory.pkl.bz2 --checkpoint-interval 10000 \
+--env MiniGrid-LavaCrossingS9N1-v0 --id lava-large-env-action-mask-spot-q-progress-2020-06-16-1532 --batch-size 128 --action-mask --spot-q --progress-reward
+Commit: 3973de16426e9c3078b69013a033e0e4fea31081
+
+
+export CUDA_VISIBLE_DEVICES="1" && taskset 0x000FFFFF python3 main.py --minigrid --target-update 2000 --T-max 1000000 --learn-start 20000 --memory-capacity 1000000 \
+--replay-frequency 1 --multi-step 1 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 \
+--evaluation-interval 5000 --memory ./results/lava-large-env-action-mask-spot-q-progress-2020-06-16-1255/memory.pkl.bz2 --checkpoint-interval 10000 \
+--env MiniGrid-LavaCrossingS9N1-v0 --id lava-large-env-action-mask-spot-q-progress-2020-06-16-1533 --batch-size 128 --action-mask --spot-q --progress-reward --seed 1234
+Commit: 3973de16426e9c3078b69013a033e0e4fea31081
 
 
 Default training run
