@@ -96,4 +96,6 @@ results/**/*.html
 # metrics
 results/**/*.csv
 # memory
+**/*.pkl.bz2
+**/*.pkl
 **/memory
