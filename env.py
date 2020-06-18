@@ -172,8 +172,11 @@ class MinigridEnv():
     else:
       _, reward, done, _ = self.env.step(action)
 
-    if not self.env.training and done:
-      reward = self.optimal_steps / self.env.step_count
+    if not self.env.training:
+      if done:
+        reward = self.optimal_steps / self.env.step_count
+      else:
+        reward = 0
 
     obs = self._get_state()
     self.state_buffer.append(obs[0])
