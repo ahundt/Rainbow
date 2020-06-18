@@ -210,8 +210,8 @@ else:
       if T % args.evaluation_interval == 0:
         dqn.eval()  # Set DQN (online network) to evaluation mode
 
-        avg_reward, avg_Q = test(args, T, dqn, val_mem, metrics, results_dir)  # Test
-        log('T = ' + str(T) + ' / ' + str(args.T_max) + ' | Avg. reward: ' + str(avg_reward) + ' | Avg. Q: ' + str(avg_Q))
+        action_eff, avg_Q = test(args, T, dqn, val_mem, metrics, results_dir)  # Test
+        log('T = ' + str(T) + ' / ' + str(args.T_max) + ' | Action efficiency: ' + str(action_eff) + ' | Avg. Q: ' + str(avg_Q))
         dqn.train()  # Set DQN (online network) back to training mode
 
         # If memory path provided, save it
