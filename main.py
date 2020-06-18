@@ -162,8 +162,9 @@ while T < args.evaluation_size:
 
 if args.evaluate:
   dqn.eval()  # Set DQN (online network) to evaluation mode
-  avg_reward, avg_Q = test(args, 0, dqn, val_mem, metrics, results_dir, evaluate=True)  # Test
-  print('Avg. reward: ' + str(avg_reward) + ' | Avg. Q: ' + str(avg_Q))
+  avg_reward, avg_Q, comp_percentage = test(args, 0, dqn, val_mem, metrics, results_dir, evaluate=True)  # Test
+  print('Avg. reward: ' + str(avg_reward) + ' | Avg. Q: ' + str(avg_Q) + ' | Trial Completion %: ' + str(comp_percentage))
+
 else:
   # set env to training mode
   env.train()

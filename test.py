@@ -23,6 +23,7 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
 
   # Test performance over several episodes
   done = True
+  comp_percentage = 0
   for _ in range(args.evaluation_episodes):
     while True:
       if done:
@@ -43,9 +44,13 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
         env.render()
 
       if done:
+        if reward_sum != 0: comp_percentage += 1
         T_rewards.append(reward_sum)
         break
   env.close()
+
+  # normalize trial completion percentage
+  comp_percentage /= args.evaluation_episodes
 
   # Test Q-values over validation memory
   for state, allowed_actions in val_mem:  # Iterate over valid states
@@ -61,6 +66,7 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
     # Append to results and save metrics
     metrics['rewards'].append(T_rewards)
     metrics['Qs'].append(T_Qs)
+    metrics['trial_completion'].append(comp_percentage)
     torch.save(metrics, os.path.join(results_dir, 'metrics.pth'))
 
     # Plot
@@ -71,12 +77,12 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
     # Append to results and save metrics
     metrics['rewards'] = T_rewards
     metrics['Qs'] = T_Qs
+    metrics['trial_completion'] = comp_percentage
     print('wrote results')
     torch.save(metrics, os.path.join(results_dir, 'best_metrics.pth'))
     
   # Return average reward and Q-value
-  return avg_reward, avg_Q
-
+  return avg_reward, avg_Q, comp_percentage
 
 # Plots min, max and mean + standard deviation bars of a population over time
 def _plot_line(xs, ys_population, title, path=''):
