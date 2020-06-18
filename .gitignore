@@ -102,3 +102,6 @@ results/**/*.csv
 
 # ipython notebooks
 **/*.ipynb
+
+# zip files
+*.7z
