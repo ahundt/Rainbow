@@ -7,10 +7,13 @@ for exp in os.listdir('results'):
   if os.path.isfile(exp): continue
   processed_path = os.path.join('results', exp, 'results.csv')
   if os.path.exists(processed_path): continue
+  if not os.path.exists(os.path.join('results', exp, 'best_metrics.pth')): continue
 
   # put into dataframe to process
-  results = pd.DataFrame.from_dict(torch.load(os.path.join('results', exp, 'metrics.pth')))
-  results = results.drop(columns=['best_avg_reward', 'Qs'])
+  #results = pd.DataFrame.from_dict(torch.load(os.path.join('results', exp, 'best_metrics.pth')))
+  results = pd.DataFrame(torch.load(os.path.join('results', exp, 'best_metrics.pth'))['rewards'], columns=['rewards'])
+
+  #results = results.drop(columns=['best_avg_reward', 'Qs'])
 
   # get min, max, mean, std of reward, trial success rate (0 reward means failure)
   results['min_reward'] = results['rewards'].apply(lambda x: np.min(x))

@@ -103,6 +103,8 @@ class Env():
 
 class MinigridEnv():
   def __init__(self, args):
+    self.env_name = args.env
+
     if args.progress_reward:
       self.env = LavaCrossingSpotRewardEnv(args.action_reward_penalty)
       self.progress_reward = True
@@ -119,6 +121,8 @@ class MinigridEnv():
     self.device = args.device
     self.window = args.history_length  # Number of frames to concatenate
     self.state_buffer = deque([], maxlen=args.history_length)
+
+    self.optimal_steps = self._get_optimal_steps()
 
   def _get_obs_rgb(self, obs):
     obs = obs.transpose((2, 0, 1))
@@ -158,6 +162,7 @@ class MinigridEnv():
     self.env.reset()
     obs = self._get_state()
     self.state_buffer.append(obs[0])
+    self.optimal_steps = self._get_optimal_steps()
     return torch.stack(list(self.state_buffer), 0)
 
   def step(self, action, agent_pos=None):
@@ -166,6 +171,12 @@ class MinigridEnv():
       _, reward, done = self.env.step(action, self.agent_pos())
     else:
       _, reward, done, _ = self.env.step(action)
+
+    if not self.env.training:
+      if done:
+        reward = self.optimal_steps / self.env.step_count
+      else:
+        reward = 0
 
     obs = self._get_state()
     self.state_buffer.append(obs[0])
@@ -186,6 +197,69 @@ class MinigridEnv():
 
   def agent_pos(self):
     return self.env.agent_pos
+
+  def _get_optimal_steps(self):
+    # for now, raise an error if the env isn't 9x9 lava crossing with 1 gap
+    if self.env_name != 'MiniGrid-LavaCrossingS9N1-v0':
+      raise ValueError("Action Efficiency only implemented for LavaCrossings9N1")
+
+    # iterate through grid and find crossing position
+    cross_pos = (0, 0)
+    grid = np.array(self.env.grid.grid.copy())
+
+    # 0 for vertical, 1 for horizontal
+    lava_orientation = None
+    lava_ref_spot = None
+    for ind, i in enumerate(grid):
+      if i is None:
+        grid[ind] = 0
+        r = ind // self.env.grid.height
+        c = ind - (r * self.env.grid.height)
+        # vertical lava strip and same column as lava
+        if lava_orientation == 0 and lava_ref_spot[1] == c:
+          cross_pos = (r, c)
+        # horizontal lava strip and same row as lava
+        elif lava_orientation == 1 and lava_ref_spot[0] == r:
+          cross_pos = (r, c)
+
+      elif i.type == 'lava':
+        grid[ind] = 1
+        if lava_orientation is None:
+          # figure out the orientation and set the reference point (to calculate crossing point)
+          lava_orientation = (grid[ind + 1] is not None and grid[ind + 1].type == 'lava') or \
+              (grid[ind + 2] is not None and grid[ind + 2].type == 'lava')
+          lava_ref_spot = (ind // self.env.grid.height, ind - (r * self.env.grid.height))
+      elif i.type == 'wall':
+        grid[ind] = 1
+      elif i.type == 'goal':
+        # we are at the goal here, assign it a value of 2
+        grid[ind] = 2
+        # calculate row and column of goal, store this info
+        r = ind // self.env.grid.height
+        c = ind - (r * self.env.grid.height)
+
+    # now calculate optimal path length
+    base_len = 14 # 6 steps, turn, 6 more steps
+    agent_dir = self.env.dir_vec
+    grid_np = grid.reshape([self.env.grid.height, self.env.grid.width])
+    
+    # if the agent is pointing at the crossing, no extra turns
+    if agent_dir[1] == 1 and cross_pos[1] == 1:
+      return base_len
+    if agent_dir[0] == 1 and cross_pos[0] == 1:
+      return base_len
+
+    # otherwise, if the agent is pointing at lava or at a wall, add 2 extra turn(s)
+    if grid_np[1 + agent_dir[::-1][0], 1 + agent_dir[::-1][1]] == 1:
+      # if we need 2 turns to even move forward, add 1 extra turn here
+      # check each possible position attained after a single turn
+      if grid_np[1 + agent_dir[0], 1 + agent_dir[1]] and grid_np[1 - agent_dir[0], 1 - agent_dir[1]] == 1:
+        return base_len + 3
+
+      return base_len + 2
+
+    # otherwise, we can move forward from the start, and add 1 extra step for the crossing turn
+    return base_len + 1
 
   def render(self):
     state = self._get_state().cpu().numpy()[0]

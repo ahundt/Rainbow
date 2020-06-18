@@ -67,6 +67,13 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
     _plot_line(metrics['steps'], metrics['rewards'], 'Reward', path=results_dir)
     _plot_line(metrics['steps'], metrics['Qs'], 'Q', path=results_dir)
 
+  else:
+    # Append to results and save metrics
+    metrics['rewards'] = T_rewards
+    metrics['Qs'] = T_Qs
+    print('wrote results')
+    torch.save(metrics, os.path.join(results_dir, 'best_metrics.pth'))
+    
   # Return average reward and Q-value
   return avg_reward, avg_Q
 
