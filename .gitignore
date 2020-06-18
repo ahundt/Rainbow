@@ -99,3 +99,6 @@ results/**/*.csv
 **/*.pkl.bz2
 **/*.pkl
 **/memory
+
+# ipython notebooks
+**/*.ipynb
