@@ -203,12 +203,9 @@ class MinigridEnv():
     return self.env.agent_pos
 
   def _get_optimal_steps(self):
-    # for now, raise an error if the env isn't 9x9 lava crossing with 1 gap
-    if self.env_name != 'MiniGrid-LavaCrossingS9N1-v0':
-      raise ValueError("Action Efficiency only implemented for LavaCrossings9N1")
-
     # iterate through grid and find crossing position
     cross_pos = (0, 0)
+    goal_pos = (0, 0)
     grid = np.array(self.env.grid.grid.copy())
 
     # 0 for vertical, 1 for horizontal
@@ -241,9 +238,19 @@ class MinigridEnv():
         # calculate row and column of goal, store this info
         r = ind // self.env.grid.height
         c = ind - (r * self.env.grid.height)
+        goal_pos = (r, c)
+
+    # now, if we haven't set the cross_pos, it is the first column/row of the lava crossing
+    if cross_pos == (0, 0):
+      # vertical lava
+      if lava_orientation == 0:
+        cross_pos = (1, lava_ref_spot[1])
+      # horizontal lava
+      else:
+        cross_pos = (lava_ref_spot[0], 1)
 
     # now calculate optimal path length
-    base_len = 14 # 6 steps, turn, 6 more steps
+    base_len = 13 # 6 steps, turn, 6 more steps
     agent_dir = self.env.dir_vec
     grid_np = grid.reshape([self.env.grid.height, self.env.grid.width])
     
@@ -252,14 +259,23 @@ class MinigridEnv():
       return base_len
     if agent_dir[0] == 1 and cross_pos[0] == 1:
       return base_len
+    # or, we have horizontal lava, crossing at end, or vertical lava, crossing at end
+    if agent_dir[0] == 1 and lava_orientation == 1 and cross_pos[1] == 7:
+      return base_len
+    if agent_dir[1] == 1 and lava_orientation == 0 and cross_pos[0] == 7:
+      return base_len
 
     # otherwise, if the agent is pointing at lava or at a wall, add 2 extra turn(s)
-    if grid_np[1 + agent_dir[::-1][0], 1 + agent_dir[::-1][1]] == 1:
-      # if we need 2 turns to even move forward, add 1 extra turn here
-      # check each possible position attained after a single turn
-      if grid_np[1 + agent_dir[0], 1 + agent_dir[1]] and grid_np[1 - agent_dir[0], 1 - agent_dir[1]] == 1:
-        return base_len + 3
-
+    # UNLESS the crossing is in the same row (vertical lava) or column (horizontal lava)
+    # as the goal
+    if agent_dir[0] == 1 and lava_orientation == 0:
+      if goal_pos[0] == cross_pos[0]:
+        return base_len + 1
+      return base_len + 2
+    
+    if agent_dir[1] == 1 and lava_orientation == 1:
+      if goal_pos[1] == cross_pos[1]:
+        return base_len + 1
       return base_len + 2
 
     # otherwise, we can move forward from the start, and add 1 extra step for the crossing turn
