@@ -121,6 +121,7 @@ class MinigridEnv():
     self.device = args.device
     self.window = args.history_length  # Number of frames to concatenate
     self.state_buffer = deque([], maxlen=args.history_length)
+    self.training = False
 
     self.optimal_steps = self._get_optimal_steps()
 
@@ -172,7 +173,7 @@ class MinigridEnv():
     else:
       _, reward, done, _ = self.env.step(action)
 
-    if not self.env.training:
+    if not self.training:
       if done:
         reward = self.optimal_steps / self.env.step_count
       else:
@@ -185,10 +186,12 @@ class MinigridEnv():
     return torch.stack(list(self.state_buffer), 0), reward, done
 
   def train(self):
+    self.training = True
     if self.progress_reward:
       self.env.train()
 
   def eval(self):
+    self.training = False
     if self.progress_reward:
       self.env.eval()
 
