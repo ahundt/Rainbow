@@ -188,8 +188,6 @@ export CUDA_VISIBLE_DEVICES="1" && taskset 0x000FFFFF python3 main.py --minigrid
 --replay-frequency 1 --multi-step 20 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 --evaluation-interval 5000 --env MiniGrid-LavaCrossingS9N1-v0 --batch-size 128 --id 2020-06-17-1908-lava-large-env-action-mask-no-spotq-rainbow-with-action-efficiency  --memory ./results/2020-06-17-1908-lava-large-env-action-mask-no-spotq-rainbow-with-action-efficiency/memory.pkl.bz2 --evaluation-episodes 30 --seed 1234 --action-mask
 
 
-
-
 SPOT-Q + Mask Rainbow Lava world 500k actions
 =======================================
 
@@ -205,3 +203,34 @@ Commit 6301faf0be4ed242ba35deec0c4e85d31481b7d2
 workstation named femur
 export CUDA_VISIBLE_DEVICES="1" && python3 main.py --minigrid --target-update 2000 --T-max 500000 --learn-start 20000 --memory-capacity 500000 \
 --replay-frequency 1 --multi-step 20 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 --evaluation-interval 5000 --env MiniGrid-LavaCrossingS9N1-v0 --batch-size 128 --id 2020-06-18-1528-lava-large-env-action-mask-spotq-rainbow-with-action-efficiency  --memory ./results/2020-06-18-1528-lava-large-env-action-mask-spotq-rainbow-with-action-efficiency/memory.pkl.bz2 --evaluation-episodes 30 --seed 1234 --action-mask --spot-q
+
+
+
+
+
+
+
+SPOT-Q + Mask + Progress Rainbow Lava world 500k actions
+=======================================
+
+Commit 504c2ae7bef6f7458035d81da6a982675e2f7154
+workstation named spot
+export CUDA_VISIBLE_DEVICES="0" && python3 main.py --minigrid --target-update 2000 --T-max 500000 --learn-start 20000 --memory-capacity 500000 \
+--replay-frequency 1 --multi-step 1 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 --evaluation-interval 5000 --env MiniGrid-LavaCrossingS9N1-v0 --batch-size 128 --id 2020-06-18-1745-lava-large-env-action-mask-spotq-progress-rainbow-with-action-efficiency  --memory ./results/2020-06-18-1745-lava-large-env-action-mask-spotq-progress-rainbow-with-action-efficiency/memory.pkl.bz2 --evaluation-episodes 30 --action-mask --spot-q --progress-reward
+
+
+
+
+Commit 504c2ae7bef6f7458035d81da6a982675e2f7154
+workstation named spot
+export CUDA_VISIBLE_DEVICES="1" && python3 main.py --minigrid --target-update 2000 --T-max 500000 --learn-start 20000 --memory-capacity 500000 \
+--replay-frequency 1 --multi-step 1 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 --evaluation-interval 5000 --env MiniGrid-LavaCrossingS9N1-v0 --batch-size 128 --id 2020-06-18-1746-lava-large-env-action-mask-spotq-progress-rainbow-with-action-efficiency  --memory ./results/2020-06-18-1746-lava-large-env-action-mask-spotq-progress-rainbow-with-action-efficiency/memory.pkl.bz2 --evaluation-episodes 30 --seed 1234 --action-mask --spot-q --progress-reward
+
+
+
+
+
+Example for how to re-run model evaluation on a completed model
+===============================================================
+
+export CUDA_VISIBLE_DEVICES="0" && taskset 0x000FFFFF python3 main.py --minigrid --architecture data-efficient --hidden-size 256 --env MiniGrid-LavaCrossingS9N1-v0 --batch-size 128 --id 2020-06-17-1907-lava-large-env-action-mask-no-spotq-rainbow-with-action-efficiency  --memory ./results/2020-06-17-1907-lava-large-env-action-mask-no-spotq-rainbow-with-action-efficiency/memory.pkl.bz2 --model ./results/2020-06-17-1907-lava-large-env-action-mask-no-spotq-rainbow-with-action-efficiency/model.pth --evaluation-episodes 30 --action-mask
