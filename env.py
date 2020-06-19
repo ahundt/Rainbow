@@ -288,3 +288,6 @@ class MinigridEnv():
 
   def close(self):
     cv2.destroyAllWindows()
+
+  def seed(self, seed):
+    self.env.seed(seed)

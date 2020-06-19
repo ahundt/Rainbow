@@ -14,6 +14,7 @@ from env import Env, MinigridEnv
 def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
   if args.minigrid:
     env = MinigridEnv(args)
+    env.seed(args.test_seed)
   else:
     env = Env(args)
 
