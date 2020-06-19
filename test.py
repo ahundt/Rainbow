@@ -59,7 +59,7 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
 
   avg_reward, avg_Q = sum(T_rewards) / len(T_rewards), sum(T_Qs) / len(T_Qs)
   if not evaluate:
-    if comp_percentage = 1:
+    if comp_percentage == 1:
       if metrics['trial_completed'] == 0:
         metrics['trial_completed'] = 1
         dqn.save(results_dir, 'first_completed_model.pth')
