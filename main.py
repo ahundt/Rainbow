@@ -22,7 +22,8 @@ import gym_minigrid
 # Note that hyperparameters may originally be reported in ATARI game frames instead of agent steps
 parser = argparse.ArgumentParser(description='Rainbow')
 parser.add_argument('--id', type=str, default='default', help='Experiment ID')
-parser.add_argument('--seed', type=int, default=123, help='Random seed')
+parser.add_argument('--train-seed', type=int, default=123, help='Random seed')
+parser.add_argument('--test-seed', type=int, default=1337, help='Testing random seed')
 parser.add_argument('--disable-cuda', action='store_true', help='Disable CUDA')
 parser.add_argument('--minigrid', action='store_true',  help='Use Minigrid Env, also specify --env for a specific minigrid env')
 parser.add_argument('--env', type=str, default='MiniGrid-Empty-8x8-v0', help='MiniGrid Env, see  see https://github.com/maximecb/gym-minigrid for options. Example lava world: --minigrid --env MiniGrid-LavaCrossingS9N3-v0')
@@ -76,7 +77,7 @@ if not os.path.exists(results_dir):
   os.makedirs(results_dir)
 metrics = {'steps': [], 'rewards': [], 'Qs': [], 'best_avg_reward': -float('inf'),
         'trial_completion': []}
-np.random.seed(args.seed)
+np.random.seed(args.train_seed)
 torch.manual_seed(np.random.randint(1, 10000))
 if torch.cuda.is_available() and not args.disable_cuda:
   args.device = torch.device('cuda')
@@ -114,6 +115,7 @@ if not args.minigrid:
   env = Env(args)
 else:
   env = MinigridEnv(args)
+  env.seed(args.train_seed)
 
 action_space = env.action_space()
 
