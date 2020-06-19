@@ -106,8 +106,14 @@ class MinigridEnv():
     self.env_name = args.env
 
     if args.progress_reward:
-      self.env = LavaCrossingSpotRewardEnv(args.action_reward_penalty)
+      if 'S9' in self.env_name:
+        self.env = LavaCrossingSpotRewardEnv(args.action_reward_penalty)
+      else:
+        # assuming LavaGapS5
+        self.env = LavaGapSpotRewardEnv(args.action_reward_penalty)
+
       self.progress_reward = True
+
     else:
       self.env = gym.make(args.env).unwrapped
       self.progress_reward = False
@@ -250,7 +256,12 @@ class MinigridEnv():
         cross_pos = (lava_ref_spot[0], 1)
 
     # now calculate optimal path length
-    base_len = 13 # 6 steps, turn, 6 more steps
+    if 'S9' in self.env_name:
+      base_len = 13 # 6 steps, turn, 6 more steps
+    else:
+      # assuming LavaGapS5 here
+      base_len = 5 # 2 steps, turn, 2 more steps
+
     agent_dir = self.env.dir_vec
     grid_np = grid.reshape([self.env.grid.height, self.env.grid.width])
     

@@ -59,10 +59,15 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
 
   avg_reward, avg_Q = sum(T_rewards) / len(T_rewards), sum(T_Qs) / len(T_Qs)
   if not evaluate:
-    # Save model parameters if improved
-    if avg_reward > metrics['best_avg_reward']:
-      metrics['best_avg_reward'] = avg_reward
-      dqn.save(results_dir)
+    if comp_percentage = 1:
+      if metrics['trial_completed'] == 0:
+        metrics['trial_completed'] = 1
+        dqn.save(results_dir, 'first_completed_model.pth')
+
+      # Save model parameters if improved
+      if avg_reward > metrics['best_avg_reward']:
+        metrics['best_avg_reward'] = avg_reward
+        dqn.save(results_dir, 'best_efficiency_model.pth')
 
     # Append to results and save metrics
     metrics['rewards'].append(T_rewards)
