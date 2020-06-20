@@ -26,8 +26,11 @@ for exp in os.listdir('results'):
     results['max_reward'] = results['rewards'].apply(lambda x: np.max(x))
     results['mean_reward'] = results['rewards'].apply(lambda x: np.mean(x))
     results['reward_std'] = results['rewards'].apply(lambda x: np.std(x))
-    # TODO hacky, trial is successful if we took less than max steps (100 steps)
-    results['trial_success_rate'] = results['rewards'].apply(lambda x: np.mean(np.array(x) > 0.16))
+    if 'trial_completion' in results:
+      results['trial_success_rate'] = results['trial_completion']
+    else:
+      # TODO hacky, trial is successful if we took less than max steps (100 steps)
+      results['trial_success_rate'] = results['rewards'].apply(lambda x: np.mean(np.array(x) > 0.16))
     results = results.drop(columns='rewards')
     results.to_csv(processed_path)
     print("Wrote to", processed_path)
