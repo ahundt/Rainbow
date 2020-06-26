@@ -327,6 +327,20 @@ export CUDA_VISIBLE_DEVICES="1" && python3 main.py --minigrid --target-update 20
 --replay-frequency 1 --multi-step 20 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 --evaluation-interval 5000 --env MiniGrid-LavaCrossingS9N1-v0 --batch-size 128 --id 2020-06-19-1528-lava-large-env-action-mask-spotq-rainbow-with-action-efficiency  --memory ./results/2020-06-19-1528-lava-large-env-action-mask-spotq-rainbow-with-action-efficiency/memory.pkl.bz2 --evaluation-episodes 30 --train-seed 1234 --action-mask --spot-q
 
 
+Commit 4feeba43111d2724e002cc2d605abcfc686ad1a1
+workstation named sopt, tab 2
+export CUDA_VISIBLE_DEVICES="0" && python3 main.py --minigrid --target-update 2000 --T-max 500000 --learn-start 20000 --memory-capacity 500000 \
+--replay-frequency 1 --multi-step 20 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 --evaluation-interval 5000 --env MiniGrid-LavaCrossingS9N1-v0 --batch-size 128 --id 2020-06-20-0717-lava-large-env-action-mask-spotq-rainbow-with-action-efficiency  --memory ./results/2020-06-20-0717-lava-large-env-action-mask-spotq-rainbow-with-action-efficiency/memory.pkl.bz2 --evaluation-episodes 30 --train-seed 1235 --action-mask --spot-q
+
+
+
+
+Commit 4feeba43111d2724e002cc2d605abcfc686ad1a1
+workstation named spot, tab 3
+export CUDA_VISIBLE_DEVICES="1" && python3 main.py --minigrid --target-update 2000 --T-max 500000 --learn-start 20000 --memory-capacity 500000 \
+--replay-frequency 1 --multi-step 20 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 --evaluation-interval 5000 --env MiniGrid-LavaCrossingS9N1-v0 --batch-size 128 --id 2020-06-20-0718-lava-large-env-action-mask-spotq-rainbow-with-action-efficiency  --memory ./results/2020-06-20-0718-lava-large-env-action-mask-spotq-rainbow-with-action-efficiency/memory.pkl.bz2 --evaluation-episodes 30 --train-seed 1236 --action-mask --spot-q
+
+
 
 
 
@@ -347,6 +361,22 @@ Commit 4feeba43111d2724e002cc2d605abcfc686ad1a1
 workstation named costar, tab 17
 export CUDA_VISIBLE_DEVICES="1" && python3 main.py --minigrid --target-update 2000 --T-max 500000 --learn-start 20000 --memory-capacity 500000 \
 --replay-frequency 1 --multi-step 1 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 --evaluation-interval 5000 --env MiniGrid-LavaCrossingS9N1-v0 --batch-size 128 --id 2020-06-19-1546-lava-large-env-action-mask-spotq-progress-rainbow-with-action-efficiency  --memory ./results/2020-06-19-1546-lava-large-env-action-mask-spotq-progress-rainbow-with-action-efficiency/memory.pkl.bz2 --evaluation-episodes 30 --train-seed 1234 --action-mask --spot-q --progress-reward
+
+
+
+
+Commit 4feeba43111d2724e002cc2d605abcfc686ad1a1
+workstation named spot, tab 0
+export CUDA_VISIBLE_DEVICES="0" && python3 main.py --minigrid --target-update 2000 --T-max 500000 --learn-start 20000 --memory-capacity 500000 \
+--replay-frequency 1 --multi-step 1 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 --evaluation-interval 5000 --env MiniGrid-LavaCrossingS9N1-v0 --batch-size 128 --id 2020-06-20-1655-lava-large-env-action-mask-spotq-progress-rainbow-with-action-efficiency  --memory ./results/2020-06-20-1655-lava-large-env-action-mask-spotq-progress-rainbow-with-action-efficiency/memory.pkl.bz2 --evaluation-episodes 30 --action-mask --spot-q --progress-reward
+
+
+
+
+Commit 4feeba43111d2724e002cc2d605abcfc686ad1a1
+workstation named spot, tab 1
+export CUDA_VISIBLE_DEVICES="1" && python3 main.py --minigrid --target-update 2000 --T-max 500000 --learn-start 20000 --memory-capacity 500000 \
+--replay-frequency 1 --multi-step 1 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 --evaluation-interval 5000 --env MiniGrid-LavaCrossingS9N1-v0 --batch-size 128 --id 2020-06-20-1656-lava-large-env-action-mask-spotq-progress-rainbow-with-action-efficiency  --memory ./results/2020-06-20-1656-lava-large-env-action-mask-spotq-progress-rainbow-with-action-efficiency/memory.pkl.bz2 --evaluation-episodes 30 --train-seed 1234 --action-mask --spot-q --progress-reward
 
 
 
