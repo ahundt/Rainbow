@@ -214,8 +214,9 @@ class MinigridEnv():
   def _get_optimal_steps(self):
     # note, this calculation would be more optimally done while the grid is being generated
     # e.g. by extending one of the base environment classes in gym_minigrid.envs
-    if not 'lava' in self.env_name:
-      raise NotImplementedError
+    if not 'lava' in self.env_name.lower():
+      raise NotImplementedError("Cannot compute optimal path for environment:",
+              self.env_name)
 
     # iterate through grid and find crossing position
     cross_pos = (0, 0)

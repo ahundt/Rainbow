@@ -123,8 +123,6 @@ class ReplayMemory():
     R = torch.tensor([sum(self.discount ** n * transition[self.history + n - 1].reward for n in range(self.n))], dtype=torch.float32, device=self.device)
     if self.spot_progress_reward:
        R = torch.tensor([transition[self.history-1].reward], dtype=torch.float32, device=self.device)
-    elif self.spot_trial_reward:
-       raise NotImplementedError()
     else:
        R = torch.tensor([sum(self.discount ** n * transition[self.history + n - 1].reward for n in range(self.n))], dtype=torch.float32, device=self.device)
 
