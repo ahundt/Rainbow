@@ -107,10 +107,10 @@ class MinigridEnv():
 
     if args.spot_progress_reward:
       if 'S9' in self.env_name:
-        self.env = LavaCrossingSpotRewardEnv(args.action_reward_penalty)
+        self.env = LavaCrossingSpotRewardEnv(args.spot_action_reward_penalty)
       else:
         # assuming LavaGapS5
-        self.env = LavaGapSpotRewardEnv(args.action_reward_penalty)
+        self.env = LavaGapSpotRewardEnv(args.spot_action_reward_penalty)
 
       self.spot_progress_reward = True
 

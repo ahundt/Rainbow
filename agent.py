@@ -20,7 +20,6 @@ class Agent():
     self.n = args.multi_step
     self.discount = args.discount
     self.spot_progress_reward = args.spot_progress_reward
-    self.trial_reward = args.trial_reward
 
     self.online_net = DQN(args, self.action_space).to(device=args.device)
     if args.model:  # Load pretrained model if provided
