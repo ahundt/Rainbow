@@ -26,11 +26,7 @@ for exp in os.listdir('results'):
     results['max_reward'] = results['rewards'].apply(lambda x: np.max(x))
     results['mean_reward'] = results['rewards'].apply(lambda x: np.mean(x))
     results['reward_std'] = results['rewards'].apply(lambda x: np.std(x))
-    if 'trial_completion' in results:
-      results['trial_success_rate'] = results['trial_completion']
-    else:
-      # TODO hacky, trial is successful if we took less than max steps (100 steps)
-      results['trial_success_rate'] = results['rewards'].apply(lambda x: np.mean(np.array(x) > 0.16))
+    results['trial_success_rate'] = results['trial_completion']
     results = results.drop(columns='rewards')
     results.to_csv(processed_path)
     print("Wrote to", processed_path)
@@ -45,11 +41,7 @@ for exp in os.listdir('results'):
     collated_results['max_reward'] = np.max(rewards)
     collated_results['mean_reward'] = np.mean(rewards)
     collated_results['reward_std'] = np.std(rewards)
-    if 'trial_completion' in results:
-      collated_results['trial_success'] = results['trial_completion']
-    else:
-      # TODO hacky
-      collated_results['trial_success'] = np.mean((np.array(rewards) > 0.16).astype(int))
+    collated_results['trial_success'] = results['trial_completion']
 
     collated_results.to_csv(eval_processed_path)
     print("Wrote to", eval_processed_path)
