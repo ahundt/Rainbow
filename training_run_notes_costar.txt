@@ -305,6 +305,19 @@ export CUDA_VISIBLE_DEVICES="1" && taskset 0x000FFFFF python3 main.py --minigrid
 
 
 
+Commit 4feeba43111d2724e002cc2d605abcfc686ad1a1
+workstation named costar
+export CUDA_VISIBLE_DEVICES="0" && taskset 0x000FFFFF python3 main.py --minigrid --target-update 2000 --T-max 500000 --learn-start 20000 --memory-capacity 500000 \
+--replay-frequency 1 --multi-step 20 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 --evaluation-interval 5000 --env MiniGrid-LavaCrossingS9N1-v0 --batch-size 128 --id 2020-06-20-1007-lava-large-env-action-mask-no-spotq-rainbow-with-action-efficiency  --memory ./results/2020-06-20-1007-lava-large-env-action-mask-no-spotq-rainbow-with-action-efficiency/memory.pkl.bz2 --evaluation-episodes 30 --action-mask
+
+
+Commit 4feeba43111d2724e002cc2d605abcfc686ad1a1
+workstation named costar
+export CUDA_VISIBLE_DEVICES="1" && taskset 0x000FFFFF python3 main.py --minigrid --target-update 2000 --T-max 500000 --learn-start 20000 --memory-capacity 500000 \
+--replay-frequency 1 --multi-step 20 --architecture data-efficient --hidden-size 256 --learning-rate 0.0001 --evaluation-interval 5000 --env MiniGrid-LavaCrossingS9N1-v0 --batch-size 128 --id 2020-06-20-1008-lava-large-env-action-mask-no-spotq-rainbow-with-action-efficiency  --memory ./results/2020-06-20-1008-lava-large-env-action-mask-no-spotq-rainbow-with-action-efficiency/memory.pkl.bz2 --evaluation-episodes 30 --train-seed 1234 --action-mask
+
+
+
 
 
 
