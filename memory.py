@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 Transition = namedtuple('Transition', ('timestep', 'state', 'action', 'reward', 'nonterminal', 'allowed_actions'))
-# TODO fix this to be general, right now allow turning left/right or moving forward by default
+# right now allow turning left/right or moving forward by default
 default_allowed = np.array([1, 1, 1, 0, 0, 0])
 blank_trans = Transition(0, torch.zeros(84, 84, dtype=torch.uint8), None, 0, False, default_allowed)
 
@@ -76,9 +76,7 @@ class ReplayMemory():
     self.priority_exponent = args.priority_exponent
     self.t = 0  # Internal episode timestep counter
     self.transitions = SegmentTree(capacity)  # Store transitions in a wrap-around cyclic buffer within a sum tree for querying priorities
-    self.progress_reward = args.progress_reward
-    # TODO change names
-    self.spot_trial_reward = args.trial_reward
+    self.spot_progress_reward = args.spot_progress_reward
 
   # Adds state, allowed actions, and selected action at time t, reward and terminal at time t + 1
   def append(self, state, action, reward, terminal, allowed_actions):
@@ -105,20 +103,9 @@ class ReplayMemory():
   # Returns a valid sample from a segment
   def _get_sample_from_segment(self, segment, i):
     valid = False
-    invalid_count = 0
     while not valid:
       sample = np.random.uniform(i * segment, (i + 1) * segment)  # Uniformly sample an element from within a segment
       prob, idx, tree_idx = self.transitions.find(sample)  # Retrieve sample from tree with un-normalised probability
-      invalid_count += 1
-      if invalid_count >= 10:
-        #print('_get_sample_from_segment() invalid count bug: ' + str(invalid_count))
-        #print("index", self.transitions.index, "idx", idx, "capacity", self.capacity,
-        #  "multi-step", self.n, "history", self.history)
-        #print((self.transitions.index - idx) % self.capacity)
-        #print((idx - self.transitions.index) % self.capacity)
-        #print(prob)
-        #input()
-        pass
       # Resample if transition straddled current index or probablity 0
       if (self.transitions.index - idx) % self.capacity > self.n and (idx - self.transitions.index) % self.capacity >= self.history and prob != 0:
         valid = True  # Note that conditions are valid but extra conservative around buffer index 0
@@ -134,11 +121,8 @@ class ReplayMemory():
     action = torch.tensor([transition[self.history - 1].action], dtype=torch.int64, device=self.device)
     # Calculate truncated n-step discounted return R^n = Σ_k=0->n-1 (γ^k)R_t+k+1 (note that invalid nth next states have reward 0)
     R = torch.tensor([sum(self.discount ** n * transition[self.history + n - 1].reward for n in range(self.n))], dtype=torch.float32, device=self.device)
-    #TODO add cases here - this is why reward schedule doesn't work
-    if self.progress_reward:
+    if self.spot_progress_reward:
        R = torch.tensor([transition[self.history-1].reward], dtype=torch.float32, device=self.device)
-    elif self.spot_trial_reward:
-       raise NotImplementedError()
     else:
        R = torch.tensor([sum(self.discount ** n * transition[self.history + n - 1].reward for n in range(self.n))], dtype=torch.float32, device=self.device)
 

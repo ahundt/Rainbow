@@ -28,10 +28,9 @@ parser.add_argument('--disable-cuda', action='store_true', help='Disable CUDA')
 parser.add_argument('--minigrid', action='store_true',  help='Use Minigrid Env, also specify --env for a specific minigrid env')
 parser.add_argument('--env', type=str, default='MiniGrid-Empty-8x8-v0', help='MiniGrid Env, see  see https://github.com/maximecb/gym-minigrid for options. Example lava world: --minigrid --env MiniGrid-LavaCrossingS9N3-v0')
 parser.add_argument('--spot-q', action='store_true', help='use spot-q learning algorithm')
-parser.add_argument('--action-mask', action='store_true', help='use predictive action masking')
-parser.add_argument('--progress-reward', action='store_true', help='use progress reward')
-parser.add_argument('--action-reward-penalty', action='store_true', help='penalize certain actions in progress reward')
-parser.add_argument('--trial-reward', action='store_true', help='use spot trial reward')
+parser.add_argument('--spot-action-mask', action='store_true', help='use predictive action masking')
+parser.add_argument('--spot-progress-reward', action='store_true', help='use progress reward')
+parser.add_argument('--spot-action-reward-penalty', action='store_true', help='penalize certain actions in progress reward')
 parser.add_argument('--game', type=str, default='space_invaders', choices=atari_py.list_games(), help='ATARI game')
 parser.add_argument('--T-max', type=int, default=int(50e6), metavar='STEPS', help='Number of training steps (4x number of frames)')
 parser.add_argument('--max-episode-length', type=int, default=int(108e3), metavar='LENGTH', help='Max episode length in game frames (0 to disable)')
@@ -148,7 +147,7 @@ while T < args.evaluation_size:
     env.eval()
 
   # if using an action mask, get the mask of allowed actions
-  if args.action_mask:
+  if args.spot_action_mask:
     allowed_mask = env.get_allowed_mask()
   # Otherwise, set all actions to allowed (1 is allowed, 0 is not allowed)
   else:
@@ -189,7 +188,7 @@ else:
       dqn.reset_noise()  # Draw a new set of noisy weights
 
     # as before, remove invalid actions from the action space
-    if args.action_mask:
+    if args.spot_action_mask:
       allowed_mask = env.get_allowed_mask()
     else:
       allowed_mask = np.ones(env.action_space())

@@ -105,18 +105,18 @@ class MinigridEnv():
   def __init__(self, args):
     self.env_name = args.env
 
-    if args.progress_reward:
+    if args.spot_progress_reward:
       if 'S9' in self.env_name:
-        self.env = LavaCrossingSpotRewardEnv(args.action_reward_penalty)
+        self.env = LavaCrossingSpotRewardEnv(args.spot_action_reward_penalty)
       else:
         # assuming LavaGapS5
-        self.env = LavaGapSpotRewardEnv(args.action_reward_penalty)
+        self.env = LavaGapSpotRewardEnv(args.spot_action_reward_penalty)
 
-      self.progress_reward = True
+      self.spot_progress_reward = True
 
     else:
       self.env = gym.make(args.env).unwrapped
-      self.progress_reward = False
+      self.spot_progress_reward = False
 
     self.img_size = 84
 
@@ -148,14 +148,17 @@ class MinigridEnv():
 
   def get_allowed_mask(self):
     allowed = np.zeros(self.actions)
-    # TODO modify this initialization depending on the selected task
-    # set left, right, forward to allowed, all others not allowed for now
-    allowed[:3] = 1
+    # for lava crossing and lava gap environments, no objects or doors
+    if 'lava' in self.env_name.lower():
+      # set left, right, forward to allowed, all others not allowed for now
+      allowed[:3] = 1
+    else:
+      raise NotImplementedError
 
     # check if forward is ok
     grid = self.env.grid
     next_pos = self.env.front_pos
-    
+
     next_pos_obj = grid.get(next_pos[0], next_pos[1])
     if next_pos_obj is not None:
       # don't allow moving forward into lava or wall
@@ -174,7 +177,7 @@ class MinigridEnv():
 
   def step(self, action, agent_pos=None):
     # figure out actions
-    if self.progress_reward:
+    if self.spot_progress_reward:
       _, reward, done = self.env.step(action, self.agent_pos())
     else:
       _, reward, done, _ = self.env.step(action)
@@ -194,12 +197,12 @@ class MinigridEnv():
 
   def train(self):
     self.training = True
-    if self.progress_reward:
+    if self.spot_progress_reward:
       self.env.train()
 
   def eval(self):
     self.training = False
-    if self.progress_reward:
+    if self.spot_progress_reward:
       self.env.eval()
 
   def action_space(self):
@@ -209,6 +212,12 @@ class MinigridEnv():
     return self.env.agent_pos
 
   def _get_optimal_steps(self):
+    # note, this calculation would be more optimally done while the grid is being generated
+    # e.g. by extending one of the base environment classes in gym_minigrid.envs
+    if not 'lava' in self.env_name.lower():
+      raise NotImplementedError("Cannot compute optimal path for environment:",
+              self.env_name)
+
     # iterate through grid and find crossing position
     cross_pos = (0, 0)
     goal_pos = (0, 0)
